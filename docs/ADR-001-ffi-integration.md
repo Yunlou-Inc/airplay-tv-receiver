@@ -18,8 +18,12 @@
 | `airplay_context_reset(handle) -> i32` | 复位路由器；0 成功，负值错误 |
 | `airplay_context_state(handle) -> i32` | 会话状态：0 Idle / 1 Announced / 2 Configured / 3 Streaming / 4 Paused / 5 Closed；-1 句柄缺失 |
 | `airplay_context_handle(handle, input, in_len, output, out_cap) -> isize` | 处理一帧 RTSP；正数=写入字节数；若返回值 > out_cap 表示需更大缓冲（调用方扩容重试）；负值为错误码 |
+| `airplay_listen_start(handle, addr, addr_len, authorized) -> i32` | 启动有界 TCP 监听；`authorized` 必须为 1（用户已显式授权）；正数=绑定端口；负值为错误码 |
+| `airplay_listen_stop(handle) -> i32` | 停止监听；0 成功，-1 未在监听/无效句柄 |
+| `airplay_listen_state(handle) -> i32` | 0 未监听，>0 绑定端口，-1 无效句柄 |
+| `airplay_listen_bound_addr(handle, out, cap) -> isize` | 回读实际绑定地址串；正数=字节数，若 > cap 需扩容重试 |
 
-错误码：`−1` 参数非法/空指针/输入溢出，`−2` 解析失败，`−3` 锁/状态错误，`−4` 路由错误，`−127` panic 被捕获（**绝不跨 FFI 边界 unwind**）。输入上限 `MAX_FFI_INPUT = 64 KiB`。
+`handle()` 错误码：`−1` 参数非法/空指针/输入溢出，`−2` 解析失败，`−3` 锁/状态错误，`−4` 路由错误，`−127` panic 被捕获（**绝不跨 FFI 边界 unwind**）。`listen_*` 错误码：`−1` 参数非法，`−2` 锁中毒，`−3` 非法/通配地址，`−8` 未授权，`−9` 已在监听，`−10` 绑定/IO 失败，`−127` panic。输入上限 `MAX_FFI_INPUT = 64 KiB`，绑定地址上限 128 字节。
 
 **现状缺口**：Kotlin 侧（`app/`）完全没有调用这个 FFI，也没有 JNI/NDK 构建链路；`frontend.rs` 的纯 Rust TCP 服务端也没有在任意 Android 组件里启动。这是当前最大的真实集成缺口，也是 Milestone 1–2 的前置。
 
@@ -61,7 +65,16 @@
 - **绝不**在日志中输出配对秘密、设备密钥或请求/响应明文里的敏感字段；日志仅脱敏计数与状态迁移。
 - 设备画像维持保守默认（`features=0`，见已提交的 `ffi.rs` 修正）；**在真实、非零、每设备 `device_id` 就位前，不对外广播任何能力**。
 
-### 2.8 ABI 稳定性
+### 2.8 监听接口与授权门禁（2026-11-15 增补）
+- `frontend.rs` 已有完整有界 TCP 服务端（连接上限/超时/503 限流/逐连接 Router），本轮通过 `airplay_listen_*` 暴露到 C-ABI，供 M1-2 使用。
+- **默认静默**：不调用 `listen_start` 就没有任何 socket。且 `listen_start` 双重门禁：
+  ① `authorized != 1` 直接返回 `−8`（Kotlin 侧只有拿到用户显式同意才传 true）；
+  ② 核心 `validate_bind_addr` 只接受显式 IP 字面量（回环或具体网卡），拒绝 `0.0.0.0`/`[::]` 通配与非数字主机名，防止无意中对全网暴露。
+- 端口 0 允许（OS 分配临时端口），但实际绑定地址通过 `local_addr()` 回读，`bound_addr`/`state` 返回真实端口。
+- 停止/销毁时置 `stop` 原子标志唤醒 accept 循环退出，`context_destroy` 亦会停止监听，避免端口泄漏。
+- `listen_*` 与 `handle()` 的数值错误码有语义重叠，Kotlin 门面用**独立的** `mapListenCode` 映射，保证错误消息真实。
+
+### 2.9 ABI 稳定性
 - C-ABI 符号名与签名是唯一契约；JNI crate 仅是薄适配。
 - 任何 C-ABI 变更必须同步本 ADR 并递增版本；Kotlin 门面与 Rust 桥接必须成对更新。
 
@@ -82,6 +95,9 @@
 - [ ] Kotlin 门面单测（mock/不依赖真机）通过：create→state=Idle、非法 handle→Err
 - [ ] 端到端：真机发送 `ANNOUNCE` → `state()` 返回 `Announced`
 - [ ] 负向测试：畸形/超长输入 → 返回错误码而非崩溃、无 panic 跨边界
+- [ ] 监听门禁：`authorized=0` → `−8` 且无 socket 打开；`0.0.0.0`/`[::]` → `−3` 拒绝
+- [ ] 回环监听：`listen_start("127.0.0.1:0", authorized=1)` → 返回临时端口，`state()`>0，`bound_addr` 回读一致
+- [ ] 停止：`listen_stop` 后 `state()`=0；`context_destroy` 后端口释放（无泄漏）
 
 ---
 

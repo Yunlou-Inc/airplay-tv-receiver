@@ -52,6 +52,18 @@ object AirPlayProtocol {
         outputCap: Int
     ): Int
 
+    @Keep
+    private external fun nativeListenStart(handle: Long, addr: ByteArray, authorized: Int): Int
+
+    @Keep
+    private external fun nativeListenStop(handle: Long): Int
+
+    @Keep
+    private external fun nativeListenState(handle: Long): Int
+
+    @Keep
+    private external fun nativeListenBoundAddr(handle: Long, out: ByteArray, outCap: Int): Int
+
     /** Creates a protocol context. Returns null on failure. */
     fun createContext(): Long? {
         if (!isAvailable) return null
@@ -93,6 +105,73 @@ object AirPlayProtocol {
             }
         }
         return ProtocolResult.Err(-1, "output buffer growth exhausted")
+    }
+
+    /**
+     * Start the bounded TCP RTSP listener on an explicit local interface.
+     *
+     * SECURITY: [authorized] must be true only AFTER the app has obtained explicit
+     * user consent (the M1-2 threat-model gate). The Rust core re-checks this flag
+     * and additionally refuses wildcard addresses (0.0.0.0 / [::]) — so the receiver
+     * can never be exposed on all interfaces. Pass a numeric IP literal with port,
+     * e.g. "127.0.0.1:7000"; port 0 lets the OS pick an ephemeral port.
+     *
+     * Returns [ProtocolResult.Ok] with the bound port, or an error:
+     * -3 invalid/wildcard address, -8 not authorized, -9 already listening,
+     * -10 bind/IO failure.
+     */
+    fun listenStart(handle: Long, bindAddress: String, authorized: Boolean): ProtocolResult<Int> {
+        if (!isAvailable) return ProtocolResult.Unavailable
+        val bytes = bindAddress.toByteArray(Charsets.UTF_8)
+        if (bytes.isEmpty() || bytes.size > 128) return ProtocolResult.Err(-1, "bad bind address")
+        if (!authorized) return ProtocolResult.Err(-8, "explicit user authorization required")
+        val res = nativeListenStart(handle, bytes, if (authorized) 1 else 0)
+        if (res < 0) return mapListenCode(res)
+        return ProtocolResult.Ok(res)
+    }
+
+    fun listenStop(handle: Long): ProtocolResult<Unit> {
+        if (!isAvailable) return ProtocolResult.Unavailable
+        val res = nativeListenStop(handle)
+        // -1 here means "was not listening" — idempotent stop is acceptable.
+        if (res == 0 || res == -1) return ProtocolResult.Ok(Unit)
+        return mapListenCode(res)
+    }
+
+    /** 0 = not listening, >0 = bound port. */
+    fun listenState(handle: Long): ProtocolResult<Int> {
+        if (!isAvailable) return ProtocolResult.Unavailable
+        val code = nativeListenState(handle)
+        if (code < 0) return mapListenCode(code)
+        return ProtocolResult.Ok(code)
+    }
+
+    fun listenBoundAddress(handle: Long): ProtocolResult<String> {
+        if (!isAvailable) return ProtocolResult.Unavailable
+        var cap = 128
+        repeat(4) {
+            val out = ByteArray(cap)
+            val res = nativeListenBoundAddr(handle, out, cap)
+            when {
+                res < 0 -> return mapListenCode(res)
+                res <= cap -> return ProtocolResult.Ok(String(out, 0, res, Charsets.UTF_8))
+                else -> cap = res + 16
+            }
+        }
+        return ProtocolResult.Err(-1, "address buffer growth exhausted")
+    }
+
+    // Listen APIs reuse a few numeric codes with different meanings than handle(),
+    // so they get a dedicated mapping to keep error messages truthful.
+    private fun mapListenCode(code: Int): ProtocolResult<Nothing> = when (code) {
+        -1 -> ProtocolResult.Err(-1, "invalid handle / bad args")
+        -2 -> ProtocolResult.Err(-2, "context lock poisoned")
+        -3 -> ProtocolResult.Err(-3, "invalid or wildcard bind address")
+        -8 -> ProtocolResult.Err(-8, "explicit user authorization required")
+        -9 -> ProtocolResult.Err(-9, "listener already running")
+        -10 -> ProtocolResult.Err(-10, "bind / IO failure")
+        -127 -> ProtocolResult.Err(-127, "native panic (caught, no unwind)")
+        else -> ProtocolResult.Err(code, "unknown listen code")
     }
 
     private fun mapCode(code: Int): ProtocolResult<Nothing> = when (code) {

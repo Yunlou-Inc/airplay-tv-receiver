@@ -19,7 +19,8 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 // Re-exported from the dependency-free core crate (ffi module is `pub`).
 use airplay_protocol::ffi::{
     airplay_context_create, airplay_context_destroy, airplay_context_handle,
-    airplay_context_reset, airplay_context_state,
+    airplay_context_reset, airplay_context_state, airplay_listen_bound_addr,
+    airplay_listen_start, airplay_listen_state, airplay_listen_stop,
 };
 
 const MAX_FFI_INPUT: usize = 64 * 1024;
@@ -105,6 +106,98 @@ pub extern "system" fn Java_com_example_airplaytv_ffi_AirPlayProtocol_nativeHand
             let n = (res as usize).min(cap);
             if n > 0 {
                 let _ = env.set_byte_array_region(&output, 0, &out_buf[..n]);
+            }
+        }
+        res as jint
+    }))
+    .unwrap_or(-127)
+}
+
+/// Start listening on an explicit local interface. `addr` is a UTF-8 IP literal
+/// with port (e.g. "127.0.0.1:7000"). `authorized` must be 1 AND the caller (Kotlin)
+/// must already have obtained explicit user consent — the core re-checks it.
+/// Returns the bound port (>0) on success, or a negative error code:
+/// -1 bad args, -3 invalid/wildcard address, -8 not authorized, -9 already
+/// listening, -10 bind/IO failure, -127 native panic.
+#[no_mangle]
+pub extern "system" fn Java_com_example_airplaytv_ffi_AirPlayProtocol_nativeListenStart(
+    env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    addr: JByteArray,
+    authorized: jint,
+) -> jint {
+    catch_unwind(AssertUnwindSafe(|| {
+        let bytes = match env.convert_byte_array(&addr) {
+            Ok(b) => b,
+            Err(_) => return -1,
+        };
+        if bytes.is_empty() || bytes.len() > 128 {
+            return -1;
+        }
+        airplay_listen_start(
+            handle as *mut std::ffi::c_void,
+            bytes.as_ptr(),
+            bytes.len(),
+            authorized,
+        ) as jint
+    }))
+    .unwrap_or(-127)
+}
+
+/// Stop listening. Returns 0 on success, -1 if not listening / bad handle.
+#[no_mangle]
+pub extern "system" fn Java_com_example_airplaytv_ffi_AirPlayProtocol_nativeListenStop(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jint {
+    catch_unwind(AssertUnwindSafe(|| {
+        airplay_listen_stop(handle as *mut std::ffi::c_void) as jint
+    }))
+    .unwrap_or(-127)
+}
+
+/// 0 = not listening, >0 = bound port, -1 = bad handle.
+#[no_mangle]
+pub extern "system" fn Java_com_example_airplaytv_ffi_AirPlayProtocol_nativeListenState(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jint {
+    catch_unwind(AssertUnwindSafe(|| {
+        airplay_listen_state(handle as *mut std::ffi::c_void) as jint
+    }))
+    .unwrap_or(-127)
+}
+
+/// Read the actual bound address string into `out`. Returns byte count, or the
+/// required capacity if `out` is too small (caller grows and retries).
+#[no_mangle]
+pub extern "system" fn Java_com_example_airplaytv_ffi_AirPlayProtocol_nativeListenBoundAddr(
+    env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    out: JByteArray,
+    out_cap: jint,
+) -> jint {
+    catch_unwind(AssertUnwindSafe(|| {
+        let cap = out_cap as usize;
+        if cap == 0 {
+            return -1;
+        }
+        let mut buf = vec![0u8; cap];
+        let res = unsafe {
+            airplay_listen_bound_addr(
+                handle as *mut std::ffi::c_void,
+                buf.as_mut_ptr(),
+                buf.len(),
+            )
+        };
+        if res >= 0 {
+            let n = (res as usize).min(cap);
+            if n > 0 {
+                let _ = env.set_byte_array_region(&out, 0, &buf[..n]);
             }
         }
         res as jint
