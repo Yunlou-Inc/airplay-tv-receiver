@@ -25,16 +25,19 @@
 
 ## 1. 出包（由有仓库写权限的人操作）
 
-仓库有两个出包工作流，**都不需要配置任何 secret**：
+仓库有两个出包工作流，**都不需要额外配置就能跑**：
 
 | 工作流 | 产物 | 用途 |
 |---|---|---|
 | **Build debug APK (acceptance)** | debug 签名 APK | 日常验收；每次 push 到 `master` 自动出包 |
 | **Release APK** | 已签名 release APK + `.sha256` | 正式交付；`v*` 标签自动发布到 GitHub Releases |
 
+可选：配置 4 个 `SIGNING_*` 仓库 secret 后，release 改用固定发布密钥签名，不同版本可以
+覆盖升级；未配置时回退到 runner 上临时生成的密钥。见 [`SIGNING.md`](SIGNING.md)。
+
 手动运行：打开本仓库 **Actions** → 左侧选工作流 → 右侧 **Run workflow** → 选分支 `master` → **Run workflow**。
 
-发布正式包：推送 `v*` 标签（如 `v0.2.0-yunlou`），**Release APK** 会自动构建并把 APK
+发布正式包：推送 `v*` 标签（如 `v0.3.0-yunlou`），**Release APK** 会自动构建并把 APK
 与校验文件发布到 GitHub Releases。
 
 > 构建需从源码编译 OpenSSL 与 FFmpeg，默认只编译 `armeabi-v7a` 一个 ABI：
@@ -52,9 +55,9 @@
 
 ```bash
 # macOS
-shasum -a 256 YunlouAirPlayTV-0.2.0-yunlou-release.apk
+shasum -a 256 YunlouAirPlayTV-0.3.0-yunlou-release.apk
 # Linux
-sha256sum YunlouAirPlayTV-0.2.0-yunlou-release.apk
+sha256sum YunlouAirPlayTV-0.3.0-yunlou-release.apk
 ```
 
 ## 3. 安装到电视 / 盒子
@@ -62,14 +65,15 @@ sha256sum YunlouAirPlayTV-0.2.0-yunlou-release.apk
 ```bash
 # 数据线或网络 ADB 连接后
 adb connect <设备IP>:5555
-adb install -r YunlouAirPlayTV-0.2.0-yunlou-release.apk
+adb install -r YunlouAirPlayTV-0.3.0-yunlou-release.apk
 ```
 
 或把 APK 拷到 U 盘 / 用文件管理器，在设备上选择"安装未知来源应用"。
 
 > debug 包与 release 包都可正常安装使用，均不用于上架应用商店。
-> **签名注意**：release 包由 CI 用一次性自签名密钥签名，不同批次构建的 APK
-> **不能覆盖安装**（需先 `adb uninstall` 再装）。详见第 7 节。
+> **签名注意**：构建日志与 Release 说明里都有 `SIGNING_MODE`。
+> `stable` = 固定发布密钥，可直接覆盖升级；`ephemeral` = 一次性密钥，
+> 不同批次 APK **不能覆盖安装**（需先 `adb uninstall`）。详见 [`SIGNING.md`](SIGNING.md)。
 > 卸载命令：`adb uninstall cn.net.yunlou.airplaytv`
 
 ## 4. 投屏验收（L3：真出画面）
@@ -120,9 +124,10 @@ ABI 越多，云端编译越慢、包越大。
   临时降到已发布版本后重跑。
 - **submodule 必须 recursive**：`applyUxplayPatches` 任务会对 UxPlay 子模块执行
   `git apply`，因此 checkout 用了 `submodules: recursive` + `fetch-depth: 0`，请勿删减。
-- **release 签名是一次性的**：CI 在 runner 上生成 keystore 与随机密码，用完即删，
-  仓库内没有任何密钥。不同批次 APK 不能覆盖安装。若需要长期可升级的正式签名，
-  请自备 keystore，通过 `local.properties`（或仓库 secrets）在每次构建中复用同一把密钥。
+- **release 签名有两种模式**：配置 `SIGNING_*` 仓库 secret 时使用固定发布密钥
+  （`SIGNING_MODE=stable`，可覆盖升级）；未配置时在 runner 上生成一次性 keystore
+  （`SIGNING_MODE=ephemeral`，必须先卸载）。两条路径都不把私钥写进仓库。
+  密钥如何生成、备份与轮换见 [`SIGNING.md`](SIGNING.md)。
 - **release 默认不混淆**：`-Pminify=false`。native 层通过 JNI/反射访问 Java 类，
   keep 规则未经真机验证前不启用 R8，避免投屏功能在运行时被裁掉。
 - **不支持 DRM 内容**（如 Apple TV App 的受保护影片）；这是上游共同的协议限制。

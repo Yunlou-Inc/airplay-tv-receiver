@@ -49,8 +49,8 @@ android {
         applicationId = "cn.net.yunlou.airplaytv"
         minSdk = 23
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0-yunlou"
+        versionCode = 3
+        versionName = "0.3.0-yunlou"
 
         externalNativeBuild {
             cmake {

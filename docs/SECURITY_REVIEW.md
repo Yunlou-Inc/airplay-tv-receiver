@@ -72,9 +72,10 @@
 - 全仓检索 `api_key|secret|token|password|BEGIN ... PRIVATE KEY|Bearer`：命中项为
   `storePassword`/`keyPassword` 的属性读取、`mediaSession.sessionToken`（Android 媒体会话令牌）、
   GPL 许可证正文，均非硬编码凭据。
-- 本 fork 的两个出包工作流（`build-debug-apk.yml`、`apk.yml`）**均不引用任何
-  repository secret**。release 签名所需的 keystore 与随机密码在 runner 上临时生成、
-  用完即删，仓库内仍无任何密钥、密码或 token。
+- 本 fork 的两个出包工作流（`build-debug-apk.yml`、`apk.yml`）不硬编码任何凭据。
+  release 签名有两条路径：配置了仓库 secret（`SIGNING_*`，见 [`SIGNING.md`](SIGNING.md)）
+  时使用固定发布密钥；未配置时在 runner 上临时生成 keystore、用完即删。
+  两种情况仓库内都没有密钥、密码或 token——**签名私钥从不入库**。
 
 ### 2.6 权限与组件暴露面
 
@@ -132,7 +133,7 @@
 |---|---|---|
 | 3.1 | 依赖全部锁定到精确 commit（4 个 gitlink），避免"浮动依赖"引入未审代码 | `git ls-tree HEAD app/src/main/cpp/third_party/` |
 | 3.2 | `boot_auto_start` 默认由 `true` 改为 **`false`**：不在每次开机后静默开启监听 | `Prefs.kt:78` 附近 |
-| 3.3 | 出包链路全部改为自有工作流（`build-debug-apk.yml` + 重写的 `apk.yml`），不引用任何 repository secret，产物含 sha256 校验；release 签名为 runner 内临时密钥 | `.github/workflows/*.yml` |
+| 3.3 | 出包链路全部改为自有工作流（`build-debug-apk.yml` + 重写的 `apk.yml`），产物含 sha256 与证书指纹；release 签名优先使用仓库 secret 中的固定密钥，缺失时回退 runner 内临时密钥（`SIGNING_MODE` 会写进构建日志与 Release 说明） | `.github/workflows/*.yml`、`docs/SIGNING.md` |
 | 3.4 | `allowBackup=false`、FileProvider 不导出、`SettingsReceiver` 保留 DUMP 权限保护 | 上游设计，确认保留 |
 | 3.5 | 明确 GPL-3.0 来源、版权与修改清单，便于第三方复核 | `NOTICE.md`、本报告 |
 

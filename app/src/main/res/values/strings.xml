@@ -42,6 +42,32 @@
     <string name="setup_step_2">Open Control Center on your iPhone</string>
     <string name="setup_step_3">Tap Screen Mirroring and pick this TV</string>
 
+    <!-- First-run onboarding -->
+    <string name="onboarding_tagline">Turn your TV into a wireless screen for iPhone and iPad</string>
+    <string name="onboarding_step_1_title">Use the same Wi-Fi</string>
+    <string name="onboarding_step_1_desc">Phone and TV must be on the same home network. Wired TV on the same router is fine too.</string>
+    <string name="onboarding_step_2_title">Open Control Center</string>
+    <string name="onboarding_step_2_desc">On iPhone or iPad, swipe down from the top right corner.</string>
+    <string name="onboarding_step_3_title">Tap Screen Mirroring</string>
+    <string name="onboarding_step_3_desc">Pick this TV from the list. Video apps can also use the AirPlay button.</string>
+    <string name="onboarding_opt_boot">Start the receiver when the TV boots</string>
+    <string name="onboarding_opt_boot_desc">The receiver opens its port on every boot. Off by default; you can change it later.</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_footer">Everything can be changed later in Settings</string>
+
+    <!-- Server error card -->
+    <string name="error_card_title">Receiver could not start</string>
+    <string name="error_retry">Retry</string>
+    <string name="error_view_logs">View logs</string>
+    <string name="err_net_title">Local network access is blocked</string>
+    <string name="err_net_desc">Android blocks access to nearby devices, so your phone cannot find this TV. Allow it in system settings, then retry.</string>
+    <string name="err_native_title">The video engine failed to load</string>
+    <string name="err_native_desc">The native AirPlay module did not start. This usually means the APK does not match this TV\'s CPU. Install the 32-bit (armeabi-v7a) build.</string>
+    <string name="err_port_title">Port %1$d is already in use</string>
+    <string name="err_port_desc">Another app holds the receiver port. Pick a different port under Settings → Server port, or close the other app.</string>
+    <string name="err_unknown_title">Something went wrong</string>
+    <string name="err_unknown_desc">The receiver stopped unexpectedly. Open the logs for details, then retry.</string>
+
     <!-- Content descriptions -->
     <string name="cd_pip">Picture-in-Picture</string>
     <string name="cd_fullscreen">Fullscreen</string>
@@ -211,6 +237,13 @@
     <string name="about_privacy_desc">No account, no telemetry, no ads. All traffic stays on your local network.</string>
     <string name="about_license">License</string>
     <string name="about_check_update">Check for updates</string>
+    <string name="about_replay_onboarding">Welcome guide</string>
+    <string name="about_replay_onboarding_desc">Show the 3-step introduction again</string>
+    <string name="about_download_page">Download latest version</string>
+
+    <!-- Build identity -->
+    <string name="about_signing">Signing fingerprint</string>
+    <string name="about_signing_unavailable">Unavailable</string>
 
     <!-- Debug overlay -->
     <string name="debug_section_video">Video</string>

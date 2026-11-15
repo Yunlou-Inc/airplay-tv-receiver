@@ -101,6 +101,9 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
     private val _serverState = MutableStateFlow(ServerState.STOPPED)
     val serverState = _serverState.asStateFlow()
 
+    private val _serverError = MutableStateFlow<ServerError?>(null)
+    val serverError = _serverError.asStateFlow()
+
     private val _connectionCount = MutableStateFlow(0)
     val connectionCount = _connectionCount.asStateFlow()
 
@@ -364,7 +367,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         if (_serverState.value == ServerState.RUNNING) return
         if (!hasLocalNetwork()) {
             log("Local network permission denied")
-            _failStart()
+            _failStart(ServerError.LOCAL_NETWORK)
             return
         }
         val effectiveName = prefs[Prefs.SERVER_NAME].ifBlank { Prefs.SERVER_NAME.def }
@@ -390,7 +393,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         nativeHandle = NativeBridge.nativeInit(this, hwAddr, effectiveName, keyFile, nohold, requirePin)
         if (nativeHandle == 0L) {
             log("Native init failed")
-            _failStart()
+            _failStart(ServerError.NATIVE_INIT)
             return
         }
         audioRenderer.attachEngine(nativeHandle)
@@ -437,7 +440,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         val port = NativeBridge.nativeStart(nativeHandle, requestedPort)
         if (port < 0) {
             log("Failed to start on port $requestedPort")
-            _failStart()
+            _failStart(ServerError.PORT_IN_USE)
             return
         }
 
@@ -459,6 +462,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
             nsdManager?.register(services)
         }
 
+        _serverError.value = null
         _serverState.value = ServerState.RUNNING
         if (ensureServiceStarted) {
             ContextCompat.startForegroundService(this, Intent(this, AirPlayService::class.java))
@@ -500,7 +504,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         log("Advertising ${w}x${h} from next session")
     }
 
-    private fun _failStart() {
+    private fun _failStart(reason: ServerError = ServerError.UNKNOWN) {
         audioRenderer.detachEngine()
         if (nativeHandle != 0L) {
             NativeBridge.nativeDestroy(nativeHandle)
@@ -510,6 +514,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         nsdManager = null
         wakeLock?.release()
         wakeLock = null
+        _serverError.value = reason
         _serverState.value = ServerState.ERROR
         if (foregroundStarted) {
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -559,6 +564,7 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         _positionMs.value = 0
         _durationMs.value = 0
         _serverState.value = ServerState.STOPPED
+        _serverError.value = null
         _connectionCount.value = 0
         _clientVol = null
         _clientVolDriveEnd()
@@ -1186,6 +1192,14 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         STOPPED,
         RUNNING,
         ERROR
+    }
+
+    // why the last start attempt failed; ERROR alone is not actionable for a user
+    enum class ServerError {
+        LOCAL_NETWORK,
+        NATIVE_INIT,
+        PORT_IN_USE,
+        UNKNOWN
     }
 
     companion object {

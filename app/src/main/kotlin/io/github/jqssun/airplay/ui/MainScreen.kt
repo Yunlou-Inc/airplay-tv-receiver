@@ -49,6 +49,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import io.github.jqssun.airplay.Prefs
 import io.github.jqssun.airplay.R
+import io.github.jqssun.airplay.service.AirPlayService.ServerError
 import io.github.jqssun.airplay.service.AirPlayService.ServerState
 import io.github.jqssun.airplay.ui.gestures.BrightnessState
 import io.github.jqssun.airplay.ui.gestures.DoubleTapIndicator
@@ -96,6 +97,9 @@ fun MainScreen(
 ) {
     var tab by remember { mutableStateOf(Tab.OVERVIEW) }
     var fullscreen by remember { mutableStateOf(false) }
+    // logs live under Settings; the home error card can jump straight there
+    var showLogs by remember { mutableStateOf(false) }
+    val onboarded by viewModel.pref(Prefs.ONBOARDED).collectAsState()
     val pin by viewModel.pinCode.collectAsState()
     val connections by viewModel.connectionCount.collectAsState()
     val audioOnly by viewModel.audioOnly.collectAsState()
@@ -492,6 +496,12 @@ fun MainScreen(
         return
     }
 
+    // first run: the guide replaces the tabs until the user taps through it
+    if (!onboarded) {
+        OnboardingScreen(viewModel, onDone = { viewModel.set(Prefs.ONBOARDED, true) })
+        return
+    }
+
     // restore system bars when exiting pip back to non-fullscreen
     LaunchedEffect(isInPip) {
         if (!isInPip && !fullscreen) {
@@ -526,7 +536,11 @@ fun MainScreen(
                         Tab.entries.forEach { t ->
                             NavigationBarItem(
                                 selected = tab == t,
-                                onClick = { tab = t },
+                                onClick = {
+                                    // tapping the tab itself always lands on the settings list
+                                    if (t == Tab.SETTINGS) showLogs = false
+                                    tab = t
+                                },
                                 icon = { Icon(t.icon, null) },
                                 label = { Text(stringResource(t.labelRes)) },
                                 modifier = Modifier.dpadFocus()
@@ -540,7 +554,10 @@ fun MainScreen(
                 TabContent(
                     tab, viewModel, video,
                     onFullscreen = { fullscreen = true }, onPip = onPip, onLocalNetwork = onLocalNetwork,
-                    showAudioMode = audioOnly
+                    showAudioMode = audioOnly,
+                    showLogs = showLogs,
+                    onShowLogs = { showLogs = it },
+                    onViewLogs = { showLogs = true; tab = Tab.SETTINGS }
                 )
             }
         }
@@ -575,14 +592,18 @@ private fun TabContent(
     onFullscreen: () -> Unit,
     onPip: () -> Unit,
     onLocalNetwork: () -> Unit,
-    showAudioMode: Boolean
+    showAudioMode: Boolean,
+    showLogs: Boolean,
+    onShowLogs: (Boolean) -> Unit,
+    onViewLogs: () -> Unit
 ) {
     when (tab) {
         Tab.OVERVIEW -> OverviewContent(
             viewModel, video,
-            onFullscreen = onFullscreen, onPip = onPip, onLocalNetwork = onLocalNetwork, showAudioMode = showAudioMode
+            onFullscreen = onFullscreen, onPip = onPip, onLocalNetwork = onLocalNetwork,
+            showAudioMode = showAudioMode, onViewLogs = onViewLogs
         )
-        Tab.SETTINGS -> SettingsScreen(viewModel)
+        Tab.SETTINGS -> SettingsScreen(viewModel, showLogs = showLogs, onShowLogsChange = onShowLogs)
     }
 }
 
@@ -593,9 +614,12 @@ private fun OverviewContent(
     onFullscreen: () -> Unit,
     onPip: () -> Unit,
     onLocalNetwork: () -> Unit,
-    showAudioMode: Boolean = false
+    showAudioMode: Boolean = false,
+    onViewLogs: () -> Unit = {}
 ) {
     val state by viewModel.serverState.collectAsState()
+    val serverError by viewModel.serverError.collectAsState()
+    val serverPort by viewModel.pref(Prefs.SERVER_PORT).collectAsState()
     val localNetwork by viewModel.localNetwork.collectAsState()
     val grant = state != ServerState.RUNNING && localNetwork != LocalNetworkAccess.GRANTED
     val connections by viewModel.connectionCount.collectAsState()
@@ -631,7 +655,14 @@ private fun OverviewContent(
                 if (state == ServerState.RUNNING && (mirroringActive || idlePreview)) {
                     video()
                 }
-                if (state != ServerState.RUNNING || connections == 0) {
+                if (state == ServerState.ERROR) {
+                    ErrorCard(
+                        error = serverError,
+                        port = serverPort,
+                        onRetry = viewModel::startServer,
+                        onViewLogs = onViewLogs
+                    )
+                } else if (state != ServerState.RUNNING || connections == 0) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.widthIn(max = 560.dp).padding(horizontal = 32.dp)
@@ -822,6 +853,90 @@ private fun SetupGuide() {
                     )
                 }
             }
+    }
+}
+
+@Composable
+private fun ErrorCard(
+    error: ServerError?,
+    port: Int,
+    onRetry: () -> Unit,
+    onViewLogs: () -> Unit
+) {
+    // the retry button is the only useful action here, so it takes focus on TV
+    val retryFocus = remember { FocusRequester() }
+    val tv = isTv()
+    LaunchedEffect(Unit) {
+        if (tv) retryFocus.requestFocusUntilLanded(attempts = 20)
+    }
+
+    val title: String
+    val description: String
+    when (error) {
+        ServerError.LOCAL_NETWORK -> {
+            title = stringResource(R.string.err_net_title)
+            description = stringResource(R.string.err_net_desc)
+        }
+        ServerError.NATIVE_INIT -> {
+            title = stringResource(R.string.err_native_title)
+            description = stringResource(R.string.err_native_desc)
+        }
+        ServerError.PORT_IN_USE -> {
+            title = stringResource(R.string.err_port_title, port)
+            description = stringResource(R.string.err_port_desc)
+        }
+        else -> {
+            title = stringResource(R.string.err_unknown_title)
+            description = stringResource(R.string.err_unknown_desc)
+        }
+    }
+
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        modifier = Modifier.widthIn(max = 560.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(40.dp)
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.error_card_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(18.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onRetry, modifier = Modifier.focusRequester(retryFocus)) {
+                    Text(stringResource(R.string.error_retry))
+                }
+                TextButton(onClick = onViewLogs, modifier = Modifier.dpadFocus(RoundedCornerShape(20.dp))) {
+                    Text(stringResource(R.string.error_view_logs))
+                }
+            }
+        }
     }
 }
 

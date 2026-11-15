@@ -42,6 +42,32 @@
     <string name="setup_step_2">在 iPhone 上打开控制中心</string>
     <string name="setup_step_3">点「屏幕镜像」，选择这台电视</string>
 
+    <!-- First-run onboarding -->
+    <string name="onboarding_tagline">把电视变成 iPhone、iPad 的无线副屏</string>
+    <string name="onboarding_step_1_title">连同一个 WiFi</string>
+    <string name="onboarding_step_1_desc">手机和电视要连同一个路由器。电视插网线、手机连这个路由器的 WiFi 也可以。</string>
+    <string name="onboarding_step_2_title">打开控制中心</string>
+    <string name="onboarding_step_2_desc">在 iPhone 或 iPad 上，从右上角向下滑动。</string>
+    <string name="onboarding_step_3_title">点「屏幕镜像」</string>
+    <string name="onboarding_step_3_desc">在列表里选这台电视。视频 App 里也可以点 AirPlay 图标直接投。</string>
+    <string name="onboarding_opt_boot">开机后自动开启接收</string>
+    <string name="onboarding_opt_boot_desc">每次开机都会自动开放接收端口，默认关闭，之后可在设置里修改。</string>
+    <string name="onboarding_start">开始使用</string>
+    <string name="onboarding_footer">这些内容之后都能在「设置」里修改</string>
+
+    <!-- Server error card -->
+    <string name="error_card_title">接收服务没能启动</string>
+    <string name="error_retry">重试</string>
+    <string name="error_view_logs">查看日志</string>
+    <string name="err_net_title">「附近设备」权限被拒绝了</string>
+    <string name="err_net_desc">系统不允许访问局域网，手机就发现不了这台电视。到系统设置里允许后重试。</string>
+    <string name="err_native_title">视频引擎加载失败</string>
+    <string name="err_native_desc">原生投屏模块没启动起来，通常是安装包和这台电视的 CPU 不匹配。请装 32 位（armeabi-v7a）版本。</string>
+    <string name="err_port_title">端口 %1$d 已被占用</string>
+    <string name="err_port_desc">接收端口被其他程序占着。到「设置 → 服务端口」换一个，或先关掉那个程序。</string>
+    <string name="err_unknown_title">出了点问题</string>
+    <string name="err_unknown_desc">接收服务意外中断。可以打开日志看看，然后重试。</string>
+
     <!-- Content descriptions -->
     <string name="cd_pip">画中画</string>
     <string name="cd_fullscreen">全屏</string>
@@ -211,6 +237,13 @@
     <string name="about_privacy_desc">无需账号，不上传数据，无广告，无遥测。所有流量只在你家局域网内。</string>
     <string name="about_license">许可证</string>
     <string name="about_check_update">检查更新</string>
+    <string name="about_replay_onboarding">使用引导</string>
+    <string name="about_replay_onboarding_desc">再看一遍三步投屏说明</string>
+    <string name="about_download_page">下载最新版本</string>
+
+    <!-- Build identity -->
+    <string name="about_signing">签名指纹</string>
+    <string name="about_signing_unavailable">无法读取</string>
 
     <!-- Debug overlay -->
     <string name="debug_section_video">视频</string>

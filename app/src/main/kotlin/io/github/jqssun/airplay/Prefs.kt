@@ -117,4 +117,6 @@ object Prefs {
     val ADVERTISE_AUDIO = bool("advertise_audio", true, restart = true)
     val LAUNCH_ON_CONNECT = bool("launch_on_connect", true)
     val USB_ONLY = bool("usb_only", false, restart = true)
+    // first-run guide: shown once until the user taps through it
+    val ONBOARDED = bool("onboarded", false)
 }

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云楼投屏 — 把电视变成 iPhone 的无线大屏</title>
+<meta name="description" content="云楼投屏是一个开源 Android TV 投屏接收端，装到电视上，iPhone / iPad 就能用系统自带的屏幕镜像和 AirPlay 把画面投上去。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F6BFF'/%3E%3Cpath d='M9 22h14M9 17a9 9 0 0 1 9 9M9 12a14 14 0 0 1 14 14' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --brand: #2F6BFF;
+    --brand-dark: #1B4BD8;
+    --ink: #14171F;
+    --muted: #5A6273;
+    --line: #E3E8F4;
+    --bg: #F7F8FC;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+                 "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+    line-height: 1.65;
+  }
+  a { color: var(--brand); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+  /* hero */
+  header {
+    background: radial-gradient(120% 120% at 50% 0%, #3B78FF 0%, #1B3F9E 55%, #101C3D 100%);
+    color: #fff;
+    padding: 56px 0 64px;
+    text-align: center;
+  }
+  .logo {
+    width: 88px; height: 88px;
+    margin: 0 auto 20px;
+    border-radius: 22px;
+    background: rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 32px rgba(8,18,48,.35);
+  }
+  .logo svg { width: 52px; height: 52px; }
+  h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: .5px; }
+  .tagline { font-size: 16px; color: rgba(255,255,255,.82); margin: 0 auto; max-width: 520px; }
+  .actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 26px; border-radius: 14px;
+    font-size: 16px; font-weight: 600; text-decoration: none;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: #fff; color: #14285C; box-shadow: 0 10px 24px rgba(4,12,34,.28); }
+  .btn-ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+  .meta {
+    margin-top: 22px; font-size: 13px; color: rgba(255,255,255,.68);
+    display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center;
+  }
+
+  /* body */
+  main { padding: 40px 0 8px; }
+  section + section { margin-top: 40px; }
+  h2 { font-size: 20px; margin: 0 0 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+  }
+  .steps { display: grid; gap: 14px; }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .num {
+    flex: 0 0 30px; height: 30px; border-radius: 50%;
+    background: var(--brand); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .step h3 { margin: 2px 0 2px; font-size: 15px; }
+  .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  details {
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+  }
+  details:last-of-type { border-bottom: none; }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: 15px;
+    list-style: none; display: flex; justify-content: space-between; gap: 12px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "＋"; color: var(--brand); }
+  details[open] summary::after { content: "－"; }
+  details p, details ul { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+  details li { margin: 4px 0; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: #EEF2FC;
+    border-radius: 6px;
+    padding: 2px 6px;
+    word-break: break-all;
+  }
+  pre {
+    background: #0F1730; color: #DCE5FF;
+    border-radius: 12px; padding: 14px 16px; overflow-x: auto;
+    font-size: 13px; line-height: 1.6;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  footer {
+    margin-top: 44px; padding: 26px 0 40px;
+    border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--muted); text-align: center;
+  }
+  footer p { margin: 6px 0; }
+  @media (max-width: 480px) {
+    header { padding: 40px 0 48px; }
+    h1 { font-size: 24px; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none">
+        <path d="M7 23h18" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M7 17.5a9.5 9.5 0 0 1 9.5 9.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M7 11a16 16 0 0 1 16 16" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".75"/>
+      </svg>
+    </div>
+    <h1>云楼投屏</h1>
+    <p class="tagline">装到电视上，iPhone / iPad 用系统自带的「屏幕镜像」就能把画面投上去。开源、无广告、不要账号。</p>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="https://github.com/Yunlou-Inc/airplay-tv-receiver/releases/latest">下载安装包</a>
+      <a class="btn btn-ghost" href="https://github.com/Yunlou-Inc/airplay-tv-receiver">查看源码</a>
+    </div>
+
+    <div class="meta">
+      <span>Android 6.0 及以上</span>
+      <span>32 位通用包 · 约 22 MB</span>
+      <span>GPL-3.0 开源</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2>三步开始投屏</h2>
+    <div class="card steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <h3>手机和电视连同一个路由器</h3>
+          <p>电视插网线、手机连这个路由器的 WiFi 也算同一网络。跨网段、开了 AP 隔离的路由器会让手机搜不到电视。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <h3>在 iPhone / iPad 上打开控制中心</h3>
+          <p>从屏幕右上角向下滑。视频 App 里也可以直接点播放器上的 AirPlay 图标。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div>
+          <h3>点「屏幕镜像」，选中这台电视</h3>
+          <p>电视上「云楼投屏」里显示「等待设备连接」即表示服务已就绪，选中后会立刻出现画面。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>安装说明</h2>
+    <div class="card">
+      <p style="margin-top:0;color:var(--muted);font-size:14px">
+        安装包在 GitHub Releases 里，点上面的「下载安装包」即到最新版页面，下载
+        <code>YunlouAirPlayTV-&lt;版本&gt;-release.apk</code>。
+      </p>
+      <ul style="color:var(--muted);font-size:14px;padding-left:20px">
+        <li>用 U 盘装：U 盘格式化为 <strong>FAT32</strong>，APK 放根目录，插到电视上从文件管理器打开。</li>
+        <li>先允许「未知来源应用」：设置 → 安全与隐私 → 未知来源应用 → 允许。</li>
+        <li>电视剩余空间留 600 MB 以上。</li>
+        <li>如果提示「应用未安装 / 更新不兼容」，先在「设置 → 应用」里卸载旧版本再装。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>常见问题</h2>
+    <div class="card">
+      <details>
+        <summary>电视上搜不到这台设备</summary>
+        <p>按顺序排查：</p>
+        <ul>
+          <li>手机和电视是否在<strong>同一个</strong>路由器的同一个网段（手机用 4G/5G 流量时必然搜不到）。</li>
+          <li>路由器是否开了「AP 隔离 / 客户端隔离」，开了就互相看不见，关掉即可。</li>
+          <li>App 里点过「启动」、状态显示「等待设备连接」了吗。</li>
+          <li>部分电视的省电策略会杀掉后台服务，可在设置里允许「后台运行」。</li>
+        </ul>
+      </details>
+      <details>
+        <summary>安装时提示「解析包错误」</summary>
+        <p>绝大多数是下载不完整。先核对文件大小和 SHA256（见下一条），确认完整再装。若大小一致仍报错，可能是电视系统版本低于 Android 6.0。</p>
+      </details>
+      <details>
+        <summary>怎么确认下载的包没被篡改</summary>
+        <p>Release 页面附有 <code>.sha256</code> 校验文件，内容应与本地计算结果一致：</p>
+        <pre><code># macOS / Linux
+shasum -a 256 YunlouAirPlayTV-*-release.apk
+
+# Windows PowerShell
+Get-FileHash .\YunlouAirPlayTV-*-release.apk -Algorithm SHA256</code></pre>
+        <p>App 内「设置 → 关于 → 签名指纹」显示的证书指纹，与 Release 说明里的证书 SHA-256 前 8 字节一致，说明是同一条发布流水线出的包。</p>
+      </details>
+      <details>
+        <summary>投屏卡顿、画面糊</summary>
+        <p>投屏走的是局域网，2.4G WiFi 带宽常常不够。电视尽量走网线，或让手机和电视都连 5G 频段。App 的「高级」里可以调 H.265、最大帧率等参数，默认值适合大多数情况。</p>
+      </details>
+      <details>
+        <summary>有广告吗？会收集数据吗？</summary>
+        <p>没有。App 不含账号体系、不上传数据、没有广告和统计 SDK，所有流量都在你家局域网内。源码全部公开，可自行审计或自行编译。</p>
+      </details>
+      <details>
+        <summary>和苹果官方 AirPlay 是什么关系</summary>
+        <p>本项目是独立的开源实现，通过 AirPlay 协议与苹果设备通信，<strong>未获得 Apple 认证或授权</strong>，与 Apple Inc. 无关联。"AirPlay" 是其各自权利人的商标。</p>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h2>许可</h2>
+    <div class="card">
+      <p style="margin:0;color:var(--muted);font-size:14px">
+        本项目以 <strong>GPL-3.0</strong> 发布，基于 UxPlay 等开源项目。你可以自由使用、修改、再分发；
+        分发二进制时须一并提供完整对应源代码与许可文本，详见仓库中的
+        <a href="https://github.com/Yunlou-Inc/airplay-tv-receiver/blob/master/LICENSE">LICENSE</a> 与
+        <a href="https://github.com/Yunlou-Inc/airplay-tv-receiver/blob/master/NOTICE.md">NOTICE.md</a>。
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>云楼投屏 · 开源 Android TV 投屏接收端</p>
+    <p><a href="https://github.com/Yunlou-Inc/airplay-tv-receiver">GitHub 仓库</a> · <a href="https://github.com/Yunlou-Inc/airplay-tv-receiver/releases">全部版本</a> · GPL-3.0</p>
+  </div>
+</footer>
+
+</body>
+</html>

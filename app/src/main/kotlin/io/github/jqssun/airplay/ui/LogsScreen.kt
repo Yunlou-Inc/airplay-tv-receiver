@@ -24,7 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,12 @@ import io.github.jqssun.airplay.viewmodel.MainViewModel
 fun LogsScreen(viewModel: MainViewModel, onBack: (() -> Unit)? = null) {
     val logs by viewModel.logs.collectAsState()
     val listState = rememberLazyListState()
+    // nothing in the list is focusable, so on TV the cursor must start on a control
+    val backFocus = remember { FocusRequester() }
+    val tv = isTv()
+    LaunchedEffect(Unit) {
+        if (tv && onBack != null) backFocus.requestFocusUntilLanded(attempts = 20)
+    }
 
     BackHandler(enabled = onBack != null) { onBack?.invoke() }
 
@@ -49,7 +58,10 @@ fun LogsScreen(viewModel: MainViewModel, onBack: (() -> Unit)? = null) {
                 title = { Text(stringResource(R.string.setting_runtime_logs)) },
                 navigationIcon = {
                     if (onBack != null) {
-                        IconButton(onClick = onBack, modifier = Modifier.dpadFocus()) {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.dpadFocus().focusRequester(backFocus)
+                        ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.btn_back))
                         }
                     }

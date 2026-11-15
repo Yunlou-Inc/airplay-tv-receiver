@@ -3,6 +3,7 @@ package io.github.jqssun.airplay.ui
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -17,6 +18,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
@@ -34,10 +37,15 @@ import io.github.jqssun.airplay.appSettingsIntent
 import io.github.jqssun.airplay.viewmodel.MainViewModel
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import java.security.MessageDigest
 import kotlin.math.roundToInt
 
 @Composable
-fun SettingsScreen(viewModel: MainViewModel) {
+fun SettingsScreen(
+    viewModel: MainViewModel,
+    showLogs: Boolean = false,
+    onShowLogsChange: (Boolean) -> Unit = {}
+) {
     val serverName by viewModel.pref(Prefs.SERVER_NAME).collectAsState()
     val h265 by viewModel.pref(Prefs.H265).collectAsState()
     val enforceSdr by viewModel.pref(Prefs.ENFORCE_SDR).collectAsState()
@@ -82,10 +90,22 @@ fun SettingsScreen(viewModel: MainViewModel) {
         Prefs.OFF to stringResource(R.string.chip_off),
     )
 
-    var showLogs by remember { mutableStateOf(false) }
+    // logs are a nested screen; `showLogs` is owned by MainScreen so the home
+    // error card can jump straight into it
+    val logsFocus = remember { FocusRequester() }
+    var restoreLogsFocus by remember { mutableStateOf(false) }
     if (showLogs) {
-        LogsScreen(viewModel, onBack = { showLogs = false })
+        LogsScreen(viewModel, onBack = {
+            onShowLogsChange(false)
+            restoreLogsFocus = true
+        })
         return
+    }
+    LaunchedEffect(restoreLogsFocus) {
+        if (restoreLogsFocus) {
+            logsFocus.requestFocusUntilLanded(attempts = 20)
+            restoreLogsFocus = false
+        }
     }
 
     Column(
@@ -126,7 +146,8 @@ fun SettingsScreen(viewModel: MainViewModel) {
         ListItem(
             modifier = Modifier
                 .dpadFocus(RectangleShape)
-                .clickable { showLogs = true },
+                .focusRequester(logsFocus)
+                .clickable { onShowLogsChange(true) },
             headlineContent = { Text(stringResource(R.string.setting_runtime_logs)) },
             supportingContent = { Text(stringResource(R.string.setting_runtime_logs_desc)) }
         )
@@ -469,17 +490,37 @@ fun SettingsScreen(viewModel: MainViewModel) {
             trailingContent = { Text(versionName) }
         )
 
+        val fingerprint = remember(ctx) { signingFingerprint(ctx) }
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.about_signing)) },
+            supportingContent = {
+                Text(
+                    text = fingerprint ?: stringResource(R.string.about_signing_unavailable),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        )
+
         ListItem(
             modifier = Modifier
                 .dpadFocus(RectangleShape)
-                .clickable {
-                    runCatching {
-                        ctx.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL))
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        )
-                    }
-                },
+                .clickable { viewModel.set(Prefs.ONBOARDED, false) },
+            headlineContent = { Text(stringResource(R.string.about_replay_onboarding)) },
+            supportingContent = { Text(stringResource(R.string.about_replay_onboarding_desc)) }
+        )
+
+        ListItem(
+            modifier = Modifier
+                .dpadFocus(RectangleShape)
+                .clickable { openUrl(ctx, DOWNLOAD_URL) },
+            headlineContent = { Text(stringResource(R.string.about_download_page)) },
+            supportingContent = { Text(DOWNLOAD_URL) }
+        )
+
+        ListItem(
+            modifier = Modifier
+                .dpadFocus(RectangleShape)
+                .clickable { openUrl(ctx, SOURCE_URL) },
             headlineContent = { Text(stringResource(R.string.about_source)) },
             supportingContent = { Text(SOURCE_URL) }
         )
@@ -497,6 +538,33 @@ fun SettingsScreen(viewModel: MainViewModel) {
 }
 
 private const val SOURCE_URL = "https://github.com/Yunlou-Inc/airplay-tv-receiver"
+private const val DOWNLOAD_URL = "https://github.com/Yunlou-Inc/airplay-tv-receiver/releases/latest"
+
+private fun openUrl(ctx: Context, url: String) {
+    runCatching {
+        ctx.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
+
+// SHA-256 of the signing certificate, first 8 bytes. Lets a user confirm the APK
+// came from the same key as the copy already installed.
+private fun signingFingerprint(ctx: Context): String? = runCatching {
+    val pm = ctx.packageManager
+    val sig = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        pm.getPackageInfo(ctx.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+            .signingInfo?.apkContentsSigners?.firstOrNull()
+    } else {
+        @Suppress("DEPRECATION")
+        pm.getPackageInfo(ctx.packageName, PackageManager.GET_SIGNATURES)
+            .signatures?.firstOrNull()
+    } ?: return@runCatching null
+    MessageDigest.getInstance("SHA-256")
+        .digest(sig.toByteArray())
+        .take(8)
+        .joinToString(":") { "%02X".format(it) } + "…"
+}.getOrNull()
 
 private fun canAutoLaunch(ctx: Context): Boolean =
     Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Settings.canDrawOverlays(ctx)
