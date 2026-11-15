@@ -68,18 +68,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          STORE_PASS="ci-$(openssl rand -hex 16)"
-          KEY_PASS="ci-$(openssl rand -hex 16)"
+          # JDK 9+ keytool defaults to PKCS12, which does NOT support different
+          # store/key passwords (keypass is ignored). Using two different random
+          # passwords makes AGP fail at packaging with
+          # "Get Key failed: Given final block not properly padded".
+          PASS="ci-$(openssl rand -hex 16)"
           keytool -genkeypair -alias yunlou -keyalg RSA -keysize 2048 -validity 10000 \
             -keystore "$GITHUB_WORKSPACE/ci-release.jks" \
-            -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
+            -storepass "$PASS" -keypass "$PASS" \
             -dname "CN=Yunlou AirPlay TV, OU=Open Source, O=Yunlou, C=CN"
-          cat > "$GITHUB_WORKSPACE/local.properties" <<EOF
-          storeFile=$GITHUB_WORKSPACE/ci-release.jks
-          storePassword=$STORE_PASS
-          keyAlias=yunlou
-          keyPassword=$KEY_PASS
-          EOF
+          # printf (not an indented heredoc) keeps the properties lines clean.
+          {
+            printf 'storeFile=%s\n' "$GITHUB_WORKSPACE/ci-release.jks"
+            printf 'storePassword=%s\n' "$PASS"
+            printf 'keyAlias=yunlou\n'
+            printf 'keyPassword=%s\n' "$PASS"
+          } > "$GITHUB_WORKSPACE/local.properties"
 
       - name: Assemble release APK
         shell: bash
