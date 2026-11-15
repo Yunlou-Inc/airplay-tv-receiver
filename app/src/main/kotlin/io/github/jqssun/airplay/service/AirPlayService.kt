@@ -1126,9 +1126,21 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
                         .setShowActionsInCompactView(0, 1, 2)
                 )
                 // transport action buttons
-                builder.addAction(android.R.drawable.ic_media_previous, "Prev", _mediaAction(ACTION_PREV))
-                builder.addAction(android.R.drawable.ic_media_pause, "Pause", _mediaAction(ACTION_PLAY_PAUSE))
-                builder.addAction(android.R.drawable.ic_media_next, "Next", _mediaAction(ACTION_NEXT))
+                builder.addAction(
+                    android.R.drawable.ic_media_previous,
+                    getString(R.string.action_prev),
+                    _mediaAction(ACTION_PREV)
+                )
+                builder.addAction(
+                    android.R.drawable.ic_media_pause,
+                    getString(R.string.action_pause),
+                    _mediaAction(ACTION_PLAY_PAUSE)
+                )
+                builder.addAction(
+                    android.R.drawable.ic_media_next,
+                    getString(R.string.action_next),
+                    _mediaAction(ACTION_NEXT)
+                )
             }
         } else {
             if (_lastPin != null) {

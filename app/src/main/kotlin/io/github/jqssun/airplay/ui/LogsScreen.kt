@@ -1,5 +1,6 @@
 package io.github.jqssun.airplay.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,9 +33,11 @@ import io.github.jqssun.airplay.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogsScreen(viewModel: MainViewModel) {
+fun LogsScreen(viewModel: MainViewModel, onBack: (() -> Unit)? = null) {
     val logs by viewModel.logs.collectAsState()
     val listState = rememberLazyListState()
+
+    BackHandler(enabled = onBack != null) { onBack?.invoke() }
 
     LaunchedEffect(logs.size) {
         if (logs.isNotEmpty()) listState.animateScrollToItem(logs.size - 1)
@@ -42,7 +46,14 @@ fun LogsScreen(viewModel: MainViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.tab_logs)) },
+                title = { Text(stringResource(R.string.setting_runtime_logs)) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack, modifier = Modifier.dpadFocus()) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.btn_back))
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = viewModel::exportLogs, modifier = Modifier.dpadFocus()) {
                         Icon(Icons.Outlined.Share, stringResource(R.string.btn_export))

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -81,6 +82,12 @@ fun SettingsScreen(viewModel: MainViewModel) {
         Prefs.OFF to stringResource(R.string.chip_off),
     )
 
+    var showLogs by remember { mutableStateOf(false) }
+    if (showLogs) {
+        LogsScreen(viewModel, onBack = { showLogs = false })
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,6 +121,14 @@ fun SettingsScreen(viewModel: MainViewModel) {
             description = stringResource(R.string.setting_run_in_background_desc),
             checked = runInBackground,
             onCheckedChange = { viewModel.set(Prefs.RUN_IN_BACKGROUND, it) }
+        )
+
+        ListItem(
+            modifier = Modifier
+                .dpadFocus(RectangleShape)
+                .clickable { showLogs = true },
+            headlineContent = { Text(stringResource(R.string.setting_runtime_logs)) },
+            supportingContent = { Text(stringResource(R.string.setting_runtime_logs_desc)) }
         )
 
         SectionHeader(stringResource(R.string.section_connection))
@@ -209,7 +224,7 @@ fun SettingsScreen(viewModel: MainViewModel) {
             onCheckedChange = { viewModel.set(Prefs.OVERSCANNED, it) }
         )
 
-        SectionHeader(stringResource(R.string.section_decode))
+        SectionHeader(stringResource(R.string.section_advanced))
 
         SettingChips(
             title = stringResource(R.string.setting_h265),
@@ -440,8 +455,48 @@ fun SettingsScreen(viewModel: MainViewModel) {
                 onCheckedChange = { viewModel.set(Prefs.BENCHMARK_LOG, it) }
             )
         }
+
+        SectionHeader(stringResource(R.string.section_about))
+
+        val versionName = remember {
+            runCatching {
+                ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName
+            }.getOrNull().orEmpty().ifEmpty { "unknown" }
+        }
+
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.about_version_label)) },
+            trailingContent = { Text(versionName) }
+        )
+
+        ListItem(
+            modifier = Modifier
+                .dpadFocus(RectangleShape)
+                .clickable {
+                    runCatching {
+                        ctx.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
+                },
+            headlineContent = { Text(stringResource(R.string.about_source)) },
+            supportingContent = { Text(SOURCE_URL) }
+        )
+
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.about_privacy_title)) },
+            supportingContent = { Text(stringResource(R.string.about_privacy_desc)) }
+        )
+
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.about_license)) },
+            supportingContent = { Text("GPL-3.0") }
+        )
     }
 }
+
+private const val SOURCE_URL = "https://github.com/Yunlou-Inc/airplay-tv-receiver"
 
 private fun canAutoLaunch(ctx: Context): Boolean =
     Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Settings.canDrawOverlays(ctx)

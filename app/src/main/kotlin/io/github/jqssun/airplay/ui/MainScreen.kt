@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.BrightnessHigh
@@ -83,7 +82,6 @@ import kotlinx.coroutines.delay
 
 private enum class Tab(val labelRes: Int, val icon: ImageVector) {
     OVERVIEW(R.string.tab_overview, Icons.Default.Cast),
-    LOGS(R.string.tab_logs, Icons.AutoMirrored.Filled.Article),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings)
 }
 
@@ -584,7 +582,6 @@ private fun TabContent(
             viewModel, video,
             onFullscreen = onFullscreen, onPip = onPip, onLocalNetwork = onLocalNetwork, showAudioMode = showAudioMode
         )
-        Tab.LOGS -> LogsScreen(viewModel)
         Tab.SETTINGS -> SettingsScreen(viewModel)
     }
 }
@@ -635,14 +632,30 @@ private fun OverviewContent(
                     video()
                 }
                 if (state != ServerState.RUNNING || connections == 0) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.widthIn(max = 560.dp).padding(horizontal = 32.dp)
+                    ) {
                         Icon(
                             imageVector = if (connections > 0) Icons.Default.CastConnected else Icons.Default.Cast,
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                         )
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(14.dp))
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.app_tagline),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(14.dp))
                         Text(
                             text = if (grant) stringResource(R.string.local_network_desc) else when (state) {
                                 ServerState.STOPPED -> stringResource(R.string.server_stopped)
@@ -650,10 +663,13 @@ private fun OverviewContent(
                                 ServerState.ERROR -> stringResource(R.string.error_starting_server)
                             },
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            color = if (grant) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center
                         )
+                        if (!grant && state == ServerState.RUNNING && connections == 0) {
+                            SetupGuide()
+                        }
                     }
                 } else if (connecting) {
                     Text(
@@ -767,6 +783,45 @@ private fun OverviewContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SetupGuide() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 22.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.setup_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+        listOf(R.string.setup_step_1, R.string.setup_step_2, R.string.setup_step_3)
+            .forEachIndexed { index, res ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "${index + 1}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(res),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
     }
 }
 

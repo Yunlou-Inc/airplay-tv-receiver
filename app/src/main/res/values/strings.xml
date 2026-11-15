@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">云楼投屏</string>
+    <string name="app_tagline">Turn your TV into a wireless display</string>
 
     <!-- Notification -->
     <string name="notification_channel">AirPlay Service</string>
@@ -9,6 +10,9 @@
     <string name="notification_pin_title">AirPlay PIN Required</string>
     <string name="notification_pin_text">PIN: %1$s</string>
     <string name="stop_service">Stop</string>
+    <string name="action_prev">Previous</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_next">Next</string>
 
     <!-- Tabs -->
     <string name="tab_overview">Overview</string>
@@ -26,10 +30,17 @@
     <string name="btn_start">Start</string>
     <string name="btn_stop">Stop</string>
     <string name="btn_allow">Allow</string>
+    <string name="btn_back">Back</string>
     <string name="btn_open_settings">Open settings</string>
     <string name="local_network_label">Nearby devices access needed</string>
     <string name="local_network_desc">Allow access to nearby devices so AirPlay devices can find and connect to this device</string>
     <string name="unknown_track">Unknown</string>
+
+    <!-- Setup guide -->
+    <string name="setup_title">Start mirroring in 3 steps</string>
+    <string name="setup_step_1">Connect your phone and TV to the same Wi-Fi</string>
+    <string name="setup_step_2">Open Control Center on your iPhone</string>
+    <string name="setup_step_3">Tap Screen Mirroring and pick this TV</string>
 
     <!-- Content descriptions -->
     <string name="cd_pip">Picture-in-Picture</string>
@@ -44,6 +55,7 @@
     <string name="volume_value">%1$d%%</string>
     <string name="cd_download">Download video</string>
     <string name="cd_cancel_download">Cancel download</string>
+    <string name="cd_logo">Yunlou AirPlay TV</string>
 
     <!-- Video download -->
     <string name="download_saved">Saved to %1$s</string>
@@ -81,7 +93,9 @@
     <string name="section_connection">Connection</string>
     <string name="section_display">Display</string>
     <string name="section_decode">Decode</string>
+    <string name="section_advanced">Advanced</string>
     <string name="section_developer">Developer</string>
+    <string name="section_about">About</string>
 
     <!-- Settings: Server -->
     <string name="setting_server_name">Server name</string>
@@ -92,6 +106,8 @@
     <string name="setting_boot_auto_start_desc">Start the AirPlay server when the device starts</string>
     <string name="setting_run_in_background">Run in background</string>
     <string name="setting_run_in_background_desc">Keep the server running after leaving the app</string>
+    <string name="setting_runtime_logs">Runtime logs</string>
+    <string name="setting_runtime_logs_desc">Inspect connection and playback events for troubleshooting</string>
 
     <!-- Settings: Connection -->
     <string name="setting_require_pin">Require PIN (Beta)</string>
@@ -141,7 +157,7 @@
     <!-- Settings: Decode -->
     <string name="setting_h265">H.265 (HEVC)</string>
     <string name="setting_h265_desc">Auto only uses H.265 decoders known to work</string>
-    <string name="setting_enforce_sdr">MediaFormat.KEY_COLOR_TRANSFER</string>
+    <string name="setting_enforce_sdr">Force SDR output</string>
     <string name="setting_enforce_sdr_desc">Tag video as limited SDR; disable to allow HDR sources to pass through</string>
     <string name="setting_sw_alac">Force software ALAC decoder</string>
     <string name="setting_sw_alac_desc">Always use software ALAC decoder instead of system decoder, may affect latency</string>
@@ -153,11 +169,11 @@
     <!-- Settings: Developer -->
     <string name="setting_developer_options">Developer options</string>
     <string name="setting_developer_options_desc">Show options for advanced users</string>
-    <string name="setting_key_allow_frame_drop">MediaFormat.KEY_ALLOW_FRAME_DROP</string>
+    <string name="setting_key_allow_frame_drop">Allow decoder frame drop</string>
     <string name="setting_key_allow_frame_drop_desc">Allow video decoders to drop frames internally to keep up on Android 10+</string>
-    <string name="setting_realtime_decoder_priority">MediaFormat.KEY_PRIORITY</string>
+    <string name="setting_realtime_decoder_priority">Realtime audio decode priority</string>
     <string name="setting_realtime_decoder_priority_desc">Request real-time scheduling for audio decoder</string>
-    <string name="setting_operating_rate">MediaFormat.KEY_OPERATING_RATE</string>
+    <string name="setting_operating_rate">Request max decode rate</string>
     <string name="setting_operating_rate_desc">Request maximum operating rate from decoder</string>
     <string name="chip_auto">Auto</string>
     <string name="chip_on">On</string>
@@ -187,6 +203,14 @@
     <string name="setting_debug_overlay_desc">Overlay stream stats on video: codec, FPS, bitrate, jitter, frames, drops</string>
     <string name="setting_benchmark_log">Enable debug logging</string>
     <string name="setting_benchmark_log_desc">Log stream stats to logcat: codec, FPS, bitrate, jitter, frames, drops</string>
+
+    <!-- About -->
+    <string name="about_version_label">Version</string>
+    <string name="about_source">Source code (GPL-3.0)</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_desc">No account, no telemetry, no ads. All traffic stays on your local network.</string>
+    <string name="about_license">License</string>
+    <string name="about_check_update">Check for updates</string>
 
     <!-- Debug overlay -->
     <string name="debug_section_video">Video</string>

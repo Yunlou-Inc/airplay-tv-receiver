@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">云楼投屏</string>
+    <string name="app_tagline">让电视变成无线大屏</string>
+
+    <!-- Notification -->
+    <string name="notification_channel">投屏服务</string>
+    <string name="notification_title">投屏服务运行中</string>
+    <string name="notification_text">正在等待设备连接</string>
+    <string name="notification_pin_title">需要配对码</string>
+    <string name="notification_pin_text">配对码：%1$s</string>
+    <string name="stop_service">停止</string>
+    <string name="action_prev">上一个</string>
+    <string name="action_pause">暂停</string>
+    <string name="action_next">下一个</string>
+
+    <!-- Tabs -->
+    <string name="tab_overview">首页</string>
+    <string name="tab_logs">日志</string>
+    <string name="tab_settings">设置</string>
+
+    <!-- Overview -->
+    <string name="server_stopped">服务未启动</string>
+    <string name="waiting_for_connection">等待设备连接…</string>
+    <string name="waiting_for_playback">请在发送端点击播放…</string>
+    <string name="error_starting_server">启动失败</string>
+    <string name="connected_count">已连接 %d 台</string>
+    <string name="error_label">错误</string>
+    <string name="stopped_label">已停止</string>
+    <string name="btn_start">启动</string>
+    <string name="btn_stop">停止</string>
+    <string name="btn_allow">允许</string>
+    <string name="btn_back">返回</string>
+    <string name="btn_open_settings">打开设置</string>
+    <string name="local_network_label">需要「附近设备」权限</string>
+    <string name="local_network_desc">允许访问附近设备，手机才能发现并连接这台电视</string>
+    <string name="unknown_track">未知</string>
+
+    <!-- Setup guide -->
+    <string name="setup_title">三步开始投屏</string>
+    <string name="setup_step_1">手机和电视连接同一个 WiFi</string>
+    <string name="setup_step_2">在 iPhone 上打开控制中心</string>
+    <string name="setup_step_3">点「屏幕镜像」，选择这台电视</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_pip">画中画</string>
+    <string name="cd_fullscreen">全屏</string>
+    <string name="cd_exit_fullscreen">退出全屏</string>
+    <string name="cd_cover_art">封面</string>
+    <string name="cd_play_pause">播放/暂停</string>
+    <string name="cd_rewind">快退</string>
+    <string name="cd_fast_forward">快进</string>
+    <string name="volume_server">本机音量</string>
+    <string name="volume_client">发送端音量</string>
+    <string name="volume_value">%1$d%%</string>
+    <string name="cd_download">下载视频</string>
+    <string name="cd_cancel_download">取消下载</string>
+    <string name="cd_logo">云楼投屏</string>
+
+    <!-- Video download -->
+    <string name="download_saved">已保存到 %1$s</string>
+    <string name="download_failed">下载失败</string>
+
+    <!-- Player gestures -->
+    <string name="gesture_seek_seconds">%1$d 秒</string>
+    <string name="seconds_short">%1$d 秒</string>
+    <string name="select_playback_speed">播放速度</string>
+    <string name="cd_reset_speed">恢复速度</string>
+    <string name="skip_silence">跳过静音</string>
+
+    <!-- Player controls -->
+    <string name="cd_back">返回</string>
+    <string name="cd_copy_url">复制视频地址</string>
+    <string name="cd_rotate">旋转屏幕</string>
+    <string name="cd_lock_controls">锁定控制栏</string>
+    <string name="cd_unlock_controls">解锁控制栏</string>
+    <string name="scale_best_fit">适应屏幕</string>
+    <string name="scale_stretch">拉伸</string>
+    <string name="scale_crop">裁剪</string>
+    <string name="scale_hundred_percent">100%</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_pin_title">配对码</string>
+    <string name="btn_ok">确定</string>
+
+    <!-- Logs screen -->
+    <string name="btn_export">导出</string>
+    <string name="btn_clear">清空</string>
+    <string name="export_logs_chooser_title">导出日志</string>
+
+    <!-- Settings sections -->
+    <string name="section_server">服务</string>
+    <string name="section_connection">连接</string>
+    <string name="section_display">显示</string>
+    <string name="section_decode">解码</string>
+    <string name="section_advanced">高级</string>
+    <string name="section_developer">开发者</string>
+    <string name="section_about">关于</string>
+
+    <!-- Settings: Server -->
+    <string name="setting_server_name">设备名称</string>
+    <string name="setting_server_port">服务端口</string>
+    <string name="setting_auto_start">启动应用时自动开启</string>
+    <string name="setting_auto_start_desc">打开应用后自动启动投屏服务</string>
+    <string name="setting_boot_auto_start">开机自动启动</string>
+    <string name="setting_boot_auto_start_desc">电视开机后自动启动投屏服务</string>
+    <string name="setting_run_in_background">后台保持运行</string>
+    <string name="setting_run_in_background_desc">离开应用后仍保持服务运行</string>
+    <string name="setting_runtime_logs">运行日志</string>
+    <string name="setting_runtime_logs_desc">查看连接与播放事件，用于排查问题</string>
+
+    <!-- Settings: Connection -->
+    <string name="setting_require_pin">需要配对码（测试）</string>
+    <string name="setting_require_pin_desc">每个新设备连接时都需要输入 4 位配对码</string>
+    <string name="setting_allow_new_conn">允许新设备连接</string>
+    <string name="setting_allow_new_conn_desc">新设备连接时断开当前设备</string>
+
+    <!-- Settings: Display -->
+    <string name="setting_idle_preview">待机预览</string>
+    <string name="setting_idle_preview_desc">等待连接时也显示视频画面区域</string>
+    <string name="setting_auto_fullscreen">连接后自动全屏</string>
+    <string name="setting_auto_fullscreen_desc">设备连接后自动进入全屏</string>
+    <string name="setting_keep_screen_on">保持屏幕常亮</string>
+    <string name="setting_keep_screen_on_desc">投屏期间不进入休眠</string>
+    <string name="setting_advertise_video">广播视频接收能力</string>
+    <string name="setting_advertise_video_desc">关闭后，视频会以纯音频方式接收</string>
+    <string name="setting_advertise_mirroring">广播屏幕镜像能力</string>
+    <string name="setting_advertise_mirroring_desc">关闭后，本机不会出现在「屏幕镜像」列表中</string>
+    <string name="setting_advertise_audio">广播音频接收能力</string>
+    <string name="setting_advertise_audio_desc">关闭后仅支持镜像，音乐类应用将看不到本机</string>
+    <string name="setting_alac">广播 ALAC 编码</string>
+    <string name="setting_alac_desc">在 mDNS 记录中声明 ALAC，用于音乐串流</string>
+    <string name="setting_aac">广播 AAC 编码</string>
+    <string name="setting_aac_desc">在 mDNS 记录中声明 AAC-ELD/AAC-LC，用于镜像音频</string>
+    <string name="setting_launch_on_connect">连接时自动打开应用</string>
+    <string name="setting_launch_on_connect_desc">有设备连接时自动切到前台</string>
+    <string name="setting_launch_on_connect_no_permission">点击授予「悬浮窗」权限</string>
+    <string name="setting_discovery">发现方式</string>
+    <string name="setting_discovery_all_desc">在所有可用网卡上广播，使用系统 NsdManager</string>
+    <string name="setting_discovery_usb_desc">仅在 USB 网络共享上广播，强制有线连接，使用自定义 mDNS</string>
+    <string name="chip_all_networks">全部网络</string>
+    <string name="chip_usb_only">仅 USB</string>
+    <string name="setting_resolution">分辨率</string>
+    <string name="setting_resolution_desc">向发送端声明的视频分辨率</string>
+    <string name="setting_resolution_placeholder">[宽]x[高]</string>
+    <string name="setting_resolution_width">宽</string>
+    <string name="setting_resolution_height">高</string>
+    <string name="setting_max_fps">最大帧率</string>
+    <string name="setting_max_fps_desc">向发送端声明的最大帧率</string>
+    <string name="setting_max_fps_placeholder">FPS</string>
+    <string name="setting_overscanned">过扫描补偿</string>
+    <string name="setting_overscanned_desc">为存在过扫描的屏幕增加像素边界</string>
+    <string name="chip_custom">自定义</string>
+    <string name="chip_device_portrait">竖屏</string>
+    <string name="chip_device_landscape">横屏</string>
+
+    <!-- Settings: Decode -->
+    <string name="setting_h265">H.265（HEVC）</string>
+    <string name="setting_h265_desc">「自动」仅使用已知可用的 H.265 解码器</string>
+    <string name="setting_enforce_sdr">强制 SDR 输出</string>
+    <string name="setting_enforce_sdr_desc">将视频标记为有限范围 SDR；关闭后允许 HDR 源直通</string>
+    <string name="setting_sw_alac">强制软件 ALAC 解码</string>
+    <string name="setting_sw_alac_desc">始终使用软件 ALAC 解码器，可能影响延迟</string>
+    <string name="setting_sw_aac">强制软件 AAC 解码</string>
+    <string name="setting_sw_aac_desc">始终使用软件 AAC 解码器，可能影响延迟</string>
+    <string name="setting_sync_client_volume">同步发送端音量</string>
+    <string name="setting_sync_client_volume_desc">自动使用发送端音量作为本机音量</string>
+
+    <!-- Settings: Developer -->
+    <string name="setting_developer_options">开发者选项</string>
+    <string name="setting_developer_options_desc">显示面向高级用户的选项</string>
+    <string name="setting_key_allow_frame_drop">允许解码器丢帧</string>
+    <string name="setting_key_allow_frame_drop_desc">允许视频解码器在 Android 10 及以上主动丢帧以保持流畅</string>
+    <string name="setting_realtime_decoder_priority">音频解码实时优先级</string>
+    <string name="setting_realtime_decoder_priority_desc">为音频解码请求实时调度</string>
+    <string name="setting_operating_rate">请求最高解码帧率</string>
+    <string name="setting_operating_rate_desc">向解码器请求最大工作频率</string>
+    <string name="chip_auto">自动</string>
+    <string name="chip_on">开</string>
+    <string name="chip_off">关</string>
+    <string name="setting_low_latency">低延迟</string>
+    <string name="setting_low_latency_desc">音频输出使用低延迟模式，会更耗电</string>
+    <string name="setting_scheduled_output_buffer_release">帧同步输出</string>
+    <string name="setting_scheduled_output_buffer_release_desc">按帧的显示时间戳对齐到垂直同步输出</string>
+    <string name="setting_audio_delay">覆盖音频延迟</string>
+    <string name="setting_audio_delay_desc">自定义向发送端上报的音频延迟</string>
+    <string name="audio_delay_value">%d 毫秒</string>
+    <string name="setting_audio_auto_buffer">自动软件音频缓冲</string>
+    <string name="setting_audio_auto_buffer_desc">根据网络状况和设备性能自适应调整软件缓冲；滑块用于调节可吸收的抖动幅度</string>
+    <string name="audio_adaptive_value">%1$d%%（%2$s）</string>
+    <string-array name="audio_adaptive_step_names">
+        <item>最低延迟</item>
+        <item>较低延迟</item>
+        <item>均衡</item>
+        <item>更稳定</item>
+        <item>最稳定</item>
+    </string-array>
+    <string name="setting_audio_cushion_ms">软件音频缓冲（毫秒）</string>
+    <string name="setting_audio_cushion_ms_desc">用于吸收网络与解码抖动：越短延迟越低，越长越不容易卡顿</string>
+    <string name="setting_oboe_buffer_frames">硬件输出缓冲（帧）</string>
+    <string name="setting_oboe_buffer_frames_desc">应用与音频设备之间的缓冲，仅用于吸收 CPU 调度抖动；保持 0 为自动</string>
+    <string name="setting_debug_overlay">显示调试浮层</string>
+    <string name="setting_debug_overlay_desc">在画面上叠加码率、帧率、抖动、丢帧等统计</string>
+    <string name="setting_benchmark_log">启用调试日志</string>
+    <string name="setting_benchmark_log_desc">将码率、帧率、抖动、丢帧等统计写入 logcat</string>
+
+    <!-- About -->
+    <string name="about_version_label">版本</string>
+    <string name="about_source">源代码（GPL-3.0）</string>
+    <string name="about_privacy_title">隐私</string>
+    <string name="about_privacy_desc">无需账号，不上传数据，无广告，无遥测。所有流量只在你家局域网内。</string>
+    <string name="about_license">许可证</string>
+    <string name="about_check_update">检查更新</string>
+
+    <!-- Debug overlay -->
+    <string name="debug_section_video">视频</string>
+    <string name="debug_section_audio">音频</string>
+    <string name="debug_section_network">网络</string>
+    <string name="debug_video">%1$s %2$s</string>
+    <string name="debug_fps_bitrate">帧率：%1$d  码率：%2$s</string>
+    <string name="debug_frames_drops">帧数：%1$d  丢帧：%2$d</string>
+    <string name="debug_jitter">抖动：%1$s</string>
+    <string name="debug_audio">%1$s  本机：%2$d%%  发送端：%3$d%%</string>
+    <string name="debug_audio_buffer">缓冲：%1$d 毫秒（目标：%2$d 毫秒）</string>
+    <string name="debug_audio_glitch">异常：trim=%1$d drop=%2$d sil=%3$d ur=%4$d xrun=%5$d</string>
+    <string name="debug_audio_decode">解码：%1$s</string>
+    <string name="debug_clients">发送端：%1$d</string>
+</resources>
