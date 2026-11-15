@@ -62,11 +62,11 @@ adb install -r app-debug.apk
 或把 APK 拷到 U 盘 / 用文件管理器，在设备上选择"安装未知来源应用"。
 
 > 这是 **debug 签名** 的 APK，可正常安装使用，但不用于上架应用商店。
-> 卸载命令：`adb uninstall com.yunlou.airplaytv`
+> 卸载命令：`adb uninstall cn.net.yunlou.airplaytv`
 
 ## 4. 投屏验收（L3：真出画面）
 
-1. 打开 App「云露投屏」，授予"附近的设备 / 本地网络"权限。
+1. 打开 App「云楼投屏」，授予"附近的设备 / 本地网络"权限。
 2. 点 **Start** 启动接收服务（若开启"自动启动"则跳过）。
 3. 让 iPhone / iPad / Mac 连接到**同一个局域网**（同一 WiFi、同一网段）。
 4. iOS：控制中心 → **屏幕镜像** → 选择显示的设备名（默认 server name 可在设置里改）。
@@ -78,12 +78,12 @@ adb install -r app-debug.apk
 
 ```bash
 export KEY="server_name" VALUE="LivingRoomTV"
-am broadcast -n com.yunlou.airplaytv/.SettingsReceiver \
+am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver \
   -a io.github.jqssun.airplay.SET_SETTING --es key "$KEY" --es value "$VALUE"
 
 # 列出全部设置项（JSON）
-am start -n com.yunlou.airplaytv/.MainActivity
-am broadcast -n com.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
+am start -n cn.net.yunlou.airplaytv/.MainActivity
+am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
 ```
 
 ## 6. 调整 ABI（非 arm64 设备）

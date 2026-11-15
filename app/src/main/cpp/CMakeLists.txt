@@ -12,6 +12,19 @@ set(UXPLAY_LIB third_party/UxPlay/lib)
 # ---------- OpenSSL (built from source via openssl-cmake) ----------
 set(BUILD_OPENSSL ON CACHE BOOL "" FORCE)
 set(OPENSSL_BUILD_VERSION "3.4.4" CACHE STRING "" FORCE)
+
+# Fork security hardening: pin the OpenSSL source tarball by SHA256.
+# Upstream's openssl-cmake downloads from a THIRD-PARTY mirror
+# (cmake/BuildOpenSSL.cmake: URL https://mirror.viaduck.org/openssl/...) and only
+# enables URL_HASH when OPENSSL_BUILD_HASH is set. Without this, the build pulls
+# unverified source over the network -- a supply-chain risk.
+# This value is the official OpenSSL 3.4.4 tarball SHA256, confirmed by TWO
+# independent official sources (openssl.org/source/*.sha256 and the
+# openssl/openssl GitHub release asset), and independently verified by downloading
+# the full 18,278,255-byte mirror tarball and hashing it locally: byte-identical.
+# Verified 2026-11-15. Do not change without re-verifying both sources.
+set(OPENSSL_BUILD_HASH "7bdf55ac20f2779e99e5eca306f824fad2b37dee5a06cc35ed5a8b85a6060010" CACHE STRING "" FORCE)
+
 set(CROSS_ANDROID ON CACHE BOOL "" FORCE)
 string(REGEX MATCH "[0-9]+" AIRPLAY_ANDROID_API "${ANDROID_PLATFORM}")
 set(OPENSSL_PARAMS "-D__ANDROID_API__=${AIRPLAY_ANDROID_API}" CACHE STRING "" FORCE)

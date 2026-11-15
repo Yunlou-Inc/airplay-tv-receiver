@@ -75,7 +75,10 @@ object Prefs {
     val SERVER_NAME = str("server_name", "Android AirPlay", restart = true)
     val SERVER_PORT = int("server_port", 7000, 1..65535, restart = true)
     val AUTO_START = bool("auto_start", true)
-    val BOOT_AUTO_START = bool("boot_auto_start", true)
+    // Fork hardening: do NOT start listening on every device boot by default.
+    // Upstream shipped `true`; a receiver that silently opens a socket after each
+    // reboot is undesirable on a home network. Users can opt in via Settings.
+    val BOOT_AUTO_START = bool("boot_auto_start", false)
     val RUN_IN_BACKGROUND = bool("run_in_background", true)
     val H265 = tri("h265", restart = true)
     val ENFORCE_SDR = bool("enforce_sdr", true, restart = true)

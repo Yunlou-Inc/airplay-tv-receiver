@@ -46,7 +46,7 @@ android {
         // NOTE: Kotlin `namespace` above and the JNI symbols (Java_io_github_jqssun_airplay_*)
         // are intentionally left unchanged — they are internal and tightly coupled to native code.
         // FileProvider authority uses ${applicationId} and follows this value automatically.
-        applicationId = "com.yunlou.airplaytv"
+        applicationId = "cn.net.yunlou.airplaytv"
         minSdk = 23
         targetSdk = 37
         versionCode = 1

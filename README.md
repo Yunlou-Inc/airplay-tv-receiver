@@ -1,4 +1,4 @@
-# 云露投屏（Yunlou AirPlay TV）
+# 云楼投屏（Yunlou AirPlay TV）
 
 [![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
@@ -60,11 +60,11 @@ cd airplay-tv-receiver-fork
 
 ```bash
 export KEY="server_name" VALUE="Speaker"
-am broadcast -n com.yunlou.airplaytv/.SettingsReceiver \
+am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver \
   -a io.github.jqssun.airplay.SET_SETTING --es key "$KEY" --es value "$VALUE"
 
-am start -n com.yunlou.airplaytv/.MainActivity
-am broadcast -n com.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
+am start -n cn.net.yunlou.airplaytv/.MainActivity
+am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
 ```
 
 > 注：自定义 broadcast action 字符串保留上游命名空间（`io.github.jqssun.airplay.*`），
@@ -78,6 +78,14 @@ am broadcast -n com.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airpl
 
 分发 APK/AAB 时须随附完整对应源代码并保留全部版权声明；仅自用不分发则不触发 GPL 分发义务。
 本声明不构成法律意见。
+
+## 安全
+
+本项目做过一次静态源码安全审查，结论、逐项证据（文件 + 行号）、已落地加固、
+剩余风险与审查边界均记录在 [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md)。
+摘要：未发现后门特征（无硬编码外联地址、无遥测 SDK、无动态代码加载、无硬编码凭据）；
+依赖锁定到精确 commit；默认关闭开机自动监听。但静态审查不能证明"绝对安全"，
+且底层 4 个开源库源码不在本仓库内、未做运行时抓包——请阅读该报告了解边界。
 
 ## 致谢
 
