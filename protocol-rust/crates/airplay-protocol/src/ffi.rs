@@ -10,7 +10,12 @@ const MAX_FFI_INPUT:usize=64*1024;
 struct Context{router:Router,profile:DeviceProfile}
 fn contexts()->&'static Mutex<HashMap<usize,Context>>{static C:OnceLock<Mutex<HashMap<usize,Context>>>=OnceLock::new();C.get_or_init(||Mutex::new(HashMap::new()))}
 fn next_id()->usize{use std::sync::atomic::{AtomicUsize,Ordering};static N:AtomicUsize=AtomicUsize::new(1);N.fetch_add(1,Ordering::Relaxed)}
-fn profile()->DeviceProfile{DeviceProfile{instance_name:"Android TV".into(),model:Model("AirPlayReceiver1,1".into()),device_id:[0;6],protocol:ProtocolVersion{major:1,minor:0},features:FeatureSet(FeatureSet::AUDIO|FeatureSet::VIDEO)}}
+// Conservative default profile. This FFI is not yet wired into Android and must not
+// advertise capabilities that are not actually implemented. Keep `features` aligned with the
+// Android `DiscoveryConfig` default (0x0) until a capability is real; only advertise what the
+// receiver can actually serve. `device_id` is a placeholder and must be replaced with a real,
+// per-device, non-zero identifier (never a hard-coded constant) before any advertising.
+fn profile()->DeviceProfile{DeviceProfile{instance_name:"Android TV".into(),model:Model("AirPlayReceiver1,1".into()),device_id:[0;6],protocol:ProtocolVersion{major:1,minor:0},features:FeatureSet(0)}}
 fn guarded(f:impl FnOnce()->i32)->i32{catch_unwind(AssertUnwindSafe(f)).unwrap_or(-127)}
 
 #[no_mangle] pub extern "C" fn airplay_context_create()->*mut c_void{catch_unwind(||{let id=next_id();let p=profile();contexts().lock().ok()?.insert(id,Context{router:Router::new(p.clone()),profile:p});Some(id as *mut c_void)}).ok().flatten().unwrap_or(std::ptr::null_mut())}

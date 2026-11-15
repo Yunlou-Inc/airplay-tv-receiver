@@ -22,8 +22,8 @@
 
 | 门禁 | 状态 | 核对结果/证据 |
 |---|---|---|
-| 持续集成定义 | 部分完成 | `.github/workflows/ci.yml` 定义 Android 格式、静态分析、单测、构建，以及 Rust 格式、Clippy、测试、构建和依赖安全任务；没有运行报告 |
-| Gradle Wrapper 完整性 | 阻塞 | 缺 `gradlew`、`gradle/wrapper/gradle-wrapper.properties` 和 JAR，Android 任务必然在前置检查失败 |
+| 持续集成定义 | 阻塞 | `.github/workflows/ci.yml` **不存在**；本仓库尚未定义任何 CI 工作流，需新建（见落地方案 Phase F）。无运行报告 |
+| Gradle Wrapper 完整性 | 阻塞 | `gradlew` 与 `gradle/wrapper/gradle-wrapper.properties` 均已存在（`distributionSha256Sum` 已固定），仅缺 `gradle-wrapper.jar`；Android 任务在前置检查失败 |
 | Rust 锁文件 | 阻塞 | 缺 `protocol-rust/Cargo.lock`，Rust 与依赖安全任务的前置检查失败 |
 | Gradle 依赖校验 | 阻塞 | 缺 `gradle/verification-metadata.xml` |
 | 第三方直接依赖登记 | 部分完成 | `THIRD_PARTY.md` 登记直接依赖，但许可证均待核验，Compose BOM 实际传递版本未解析 |

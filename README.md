@@ -7,8 +7,8 @@
 | 类别 | 已核验状态 |
 |---|---|
 | 已实现 | Android TV Compose 界面状态模型；等待、配对确认、播放中和已配对设备等界面流程；私有、不可导出的服务声明及本地 Binder 接缝；默认关闭、可配置的 Android DNS-SD 发布及发现状态接缝；Rust 的有界 RTSP 请求解析、发现/设备模型、显式会话状态机；Kotlin 状态单元测试与 Rust 测试/模糊目标骨架 |
-| 未实现 | Android 与 Rust 集成；协议端口网络监听（DNS-SD 发布已实现但尚未设备验证）；真实配对、认证、密钥交换/安全存储；AirPlay 私有密码学与解密；音视频接收、解码、同步、渲染；遥控；持久化；完整互操作测试 |
-| 未核验 | 本环境中没有构建成功证据；没有 Gradle Wrapper、`Cargo.lock`、持续集成报告、设备测试报告或完整软件物料清单 |
+| 未实现 | Android 与 Rust 集成；Android 集成的协议端口监听（Rust `frontend.rs` 已有独立有界 TCP RTSP 服务端，但尚未接入 Android、未绑定 AirPlay 端口、无完整入口策略）；DNS-SD 发布已实现但尚未设备验证；真实配对、认证、密钥交换/安全存储；AirPlay 私有密码学与解密；音视频接收、解码、同步、渲染；遥控；持久化；完整互操作测试 |
+| 未核验 | 本环境中没有构建成功证据；缺少 `gradle-wrapper.jar`（启动脚本与 `gradle-wrapper.properties` 已存在）、`Cargo.lock`、持续集成报告、设备测试报告或完整软件物料清单 |
 | 明确禁止 | 生产部署、公网暴露、处理真实长期凭据、把界面演示当作安全配对、宣称完整 AirPlay 兼容或 Apple 认证、规避访问控制/数字版权管理 |
 
 ## 目标
@@ -24,7 +24,7 @@
 
 ## 构建
 
-已声明工具链为 JDK 17、Android SDK 35、Gradle 8.9+，Rust 使用 Cargo。仓库没有 Gradle Wrapper，且未在本环境验证构建。候选命令、前置条件和证据要求见 [BUILDING.md](BUILDING.md)。
+已声明工具链为 JDK 17、Android SDK 35、Gradle 8.9+，Rust 使用 Cargo。仓库已包含 Wrapper 启动脚本与 `gradle-wrapper.properties`（SHA-256 已固定），但缺少 `gradle-wrapper.jar`，且未在本环境验证构建。候选命令、前置条件和证据要求见 [BUILDING.md](BUILDING.md)。
 
 ## 文档
 
