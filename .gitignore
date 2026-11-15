@@ -1,0 +1,45 @@
+# Editors and operating systems
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.swp
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+secrets.properties
+
+# Android / Gradle
+.gradle/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Rust
+protocol-rust/target/
+protocol-rust/fuzz/target/
+protocol-rust/fuzz/artifacts/
+protocol-rust/fuzz/corpus/
+# Cargo.lock is intentionally tracked for reproducible CI/application builds.
+
+# Reports and generated archives
+reports/
+*.apk
+*.aab
+*.aar
+*.profraw
+*.profdata
+*.zip
+*.tar
+*.tar.gz

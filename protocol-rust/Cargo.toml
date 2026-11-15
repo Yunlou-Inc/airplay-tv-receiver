@@ -1,0 +1,4 @@
+[workspace]
+members = ["crates/airplay-protocol"]
+exclude = ["fuzz"]
+resolver = "2"
