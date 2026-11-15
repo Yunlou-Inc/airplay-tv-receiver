@@ -36,16 +36,28 @@ jobs:
           java-version: "21"
           cache: gradle
 
+      # Do NOT use android-actions/setup-android@v3: on current ubuntu-latest images
+      # (cmdline-tools 16.0) it tries to install the long-removed "tools" package
+      # and fails with exit 1. GitHub-hosted runners already ship the Android SDK;
+      # just locate sdkmanager and put it on PATH.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      # Versions must match app/build.gradle.kts: compileSdk 37, NDK 27.0.12077973.
-      # --channel=3 lets sdkmanager resolve API 37 even while it is still a preview.
-      # build-tools is intentionally not pinned: AGP 9.4.1 auto-provisions the exact
-      # revision it needs, avoiding a hard failure on a not-yet-published 37.0.0.
-      - name: Install SDK packages
+        shell: bash
         run: |
-          sdkmanager --channel=3 "platforms;android-37" "ndk;27.0.12077973" "cmake;3.22.1"
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          SDKMGR="$(find "$SDK_ROOT/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort | tail -1)"
+          test -n "$SDKMGR" && echo "sdkmanager: $SDKMGR"
+          echo "$(dirname "$SDKMGR")" >> "$GITHUB_PATH"
+          yes | "$SDKMGR" --licenses >/dev/null 2>&1 || true
+
+      # Best effort only. Upstream's own release workflow does NO SDK provisioning at
+      # all and relies on AGP auto-download; a single missing package must not abort
+      # the job. --channel=3 allows resolving a preview API 37 platform.
+      - name: Install SDK packages (best effort)
+        shell: bash
+        run: |
+          sdkmanager --channel=3 "platforms;android-37" "ndk;27.0.12077973" "cmake;3.22.1" \
+            || echo "WARN: sdkmanager did not install every package; AGP will auto-provision."
 
       # Use the checked-in wrapper (Gradle 9.8.1) — no dependency on a missing global Gradle.
       # -Pabis=arm64-v8a builds ONE ABI: OpenSSL+FFmpeg are compiled from source per ABI,
