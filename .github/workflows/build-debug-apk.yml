@@ -9,7 +9,9 @@ name: Build debug APK (acceptance)
 on:
   workflow_dispatch:
   push:
-    branches: [master, main]
+    # "android" is the branch this fork lives on in the shared repository
+    # (the default branch, master, holds the earlier MIT/Apache prototype).
+    branches: [master, main, android]
 
 permissions:
   contents: read
