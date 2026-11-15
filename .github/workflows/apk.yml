@@ -19,7 +19,7 @@ on:
       abis:
         description: "ABI list, comma separated"
         required: false
-        default: "arm64-v8a"
+        default: "armeabi-v7a"
   push:
     tags:
       - "v*"
@@ -91,7 +91,7 @@ jobs:
           set -euo pipefail
           chmod +x ./gradlew
           export SOURCE_DATE_EPOCH="$(git log -1 --pretty=%ct)"
-          ABIS="${{ inputs.abis || 'arm64-v8a' }}"
+          ABIS="${{ inputs.abis || 'armeabi-v7a' }}"
           # -Pminify=false: R8 shrinking is opt-in, see app/build.gradle.kts.
           ./gradlew --no-daemon :app:assembleRelease -Pabis="$ABIS" -Pminify=false --stacktrace
 
@@ -134,7 +134,7 @@ jobs:
           body: |
             ### 云楼投屏 release 包
 
-            - `YunlouAirPlayTV-<version>-release.apk`：arm64-v8a，**已签名**，可直接 `adb install -r`
+            - `YunlouAirPlayTV-<version>-release.apk`：armeabi-v7a（32 位通用），**已签名**，可直接 `adb install -r`
             - `.sha256`：安装包校验文件
             - 构建：JDK 21 / Android SDK 37 / NDK 27.0.12077973 / Gradle 9.8.1，4 个 native 子模块源码编译
 

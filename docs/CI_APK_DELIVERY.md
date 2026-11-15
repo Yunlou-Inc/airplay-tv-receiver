@@ -19,7 +19,7 @@
 验收方机器上**只需要**：
 
 - 一个浏览器（打开 Releases / Actions 下载 APK）
-- 一台 Android 7.0+ 电视 / 盒子（arm64-v8a，覆盖绝大多数设备）
+- 一台 Android 7.0+ 电视 / 盒子（32 位 `armeabi-v7a` 通用包，32/64 位设备都能装）
 - 一个 iPhone / iPad / Mac，与目标设备同一局域网
 - 安装方式二选一：`adb`（数据线或网络 ADB），或真机上"从文件安装"
 
@@ -34,12 +34,13 @@
 
 手动运行：打开本仓库 **Actions** → 左侧选工作流 → 右侧 **Run workflow** → 选分支 `master` → **Run workflow**。
 
-发布正式包：推送 `v*` 标签（如 `v0.1.0-yunlou`），**Release APK** 会自动构建并把 APK
+发布正式包：推送 `v*` 标签（如 `v0.2.0-yunlou`），**Release APK** 会自动构建并把 APK
 与校验文件发布到 GitHub Releases。
 
-> 构建需从源码编译 OpenSSL 与 FFmpeg，默认只编译 `arm64-v8a` 一个 ABI 以控制
-> 时长与磁盘占用。**已实测：云端首次完整构建约 4 分钟**（debug run 43723492706，
-> 产出 33 MB 可安装 APK）。若目标设备不是 arm64，见第 6 节调整 ABI。
+> 构建需从源码编译 OpenSSL 与 FFmpeg，默认只编译 `armeabi-v7a` 一个 ABI：
+> 32 位电视原生匹配，64 位电视走系统兼容层也能装，体积最小、下载最不容易断。
+> **已实测：云端首次完整构建约 4～5 分钟**。需要 64 位包时，手动运行
+> **Release APK** 工作流，把 `abis` 填成 `arm64-v8a`。
 
 ## 2. 下载与校验
 
@@ -51,9 +52,9 @@
 
 ```bash
 # macOS
-shasum -a 256 YunlouAirPlayTV-0.1.0-yunlou-release.apk
+shasum -a 256 YunlouAirPlayTV-0.2.0-yunlou-release.apk
 # Linux
-sha256sum YunlouAirPlayTV-0.1.0-yunlou-release.apk
+sha256sum YunlouAirPlayTV-0.2.0-yunlou-release.apk
 ```
 
 ## 3. 安装到电视 / 盒子
@@ -61,7 +62,7 @@ sha256sum YunlouAirPlayTV-0.1.0-yunlou-release.apk
 ```bash
 # 数据线或网络 ADB 连接后
 adb connect <设备IP>:5555
-adb install -r YunlouAirPlayTV-0.1.0-yunlou-release.apk
+adb install -r YunlouAirPlayTV-0.2.0-yunlou-release.apk
 ```
 
 或把 APK 拷到 U 盘 / 用文件管理器，在设备上选择"安装未知来源应用"。
@@ -74,7 +75,7 @@ adb install -r YunlouAirPlayTV-0.1.0-yunlou-release.apk
 ## 4. 投屏验收（L3：真出画面）
 
 1. 打开 App「云楼投屏」，授予"附近的设备 / 本地网络"权限。
-2. 点 **Start** 启动接收服务（若开启"自动启动"则跳过）。
+2. 点 **启动 / Start** 开启接收服务（若开启"自动启动"则跳过）。
 3. 让 iPhone / iPad / Mac 连接到**同一个局域网**（同一 WiFi、同一网段）。
 4. iOS：控制中心 → **屏幕镜像** → 选择显示的设备名（默认 server name 可在设置里改）。
 5. 首次连接若开启了 PIN，输入电视上显示的 4 位 PIN。
@@ -93,17 +94,19 @@ am start -n cn.net.yunlou.airplaytv/.MainActivity
 am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
 ```
 
-## 6. 调整 ABI（非 arm64 设备）
+## 6. 调整 ABI（需要 64 位或全 ABI 包时）
 
-两个工作流的构建命令都含 `-Pabis=arm64-v8a`。如需多 ABI，编辑对应工作流里
-Assemble 那一步：
+`Release APK` 工作流默认 `armeabi-v7a`。手动运行时在 `abis` 输入框填其他值即可：
 
-```bash
-./gradlew --no-daemon :app:assembleDebug -Pabis=arm64-v8a,armeabi-v7a,x86_64 --stacktrace
-```
+| 填法 | 适用 |
+|---|---|
+| `armeabi-v7a` | 默认，32 位电视直装；64 位电视可走兼容层安装 |
+| `arm64-v8a` | 纯 64 位 ROM 的电视 / 盒子 |
+| `armeabi-v7a,arm64-v8a` | 双架构合一，约 30 MB |
+| `arm64-v8a,armeabi-v7a,x86_64` | 全 ABI 兜底，约 41 MB，下载容易中断 |
 
-或直接去掉 `-Pabis=...`（恢复上游默认：全部 3 个 ABI）。ABI 越多，云端编译越慢。
-**Release APK** 工作流也可在手动运行时直接填写 `abis` 输入框。
+`Build debug APK` 工作流同理，改 Assemble 那一步的 `-Pabis=` 参数。
+ABI 越多，云端编译越慢、包越大。
 
 ## 7. 已知限制与注意
 
