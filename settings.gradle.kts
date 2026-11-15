@@ -6,6 +6,7 @@ pluginManagement {
     }
 }
 
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -14,13 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-// Spotless creates detached configurations for formatter artifacts such as ktlint.
-// With FAIL_ON_PROJECT_REPOS, declare the repository centrally for those configurations.
-gradle.beforeProject {
-    buildscript.repositories {
-        mavenCentral()
-    }
-}
-
-rootProject.name = "AirPlayTvReceiver"
+rootProject.name = "YunlouAirPlayTV"
 include(":app")

@@ -1,1 +1,4 @@
-<resources><style name="Theme.AirPlayTv" parent="android:style/Theme.Material.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:colorAccent">#80CBC4</item></style></resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AirPlayServer" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
