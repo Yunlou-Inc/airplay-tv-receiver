@@ -71,7 +71,11 @@ android {
             ndk { abiFilters += buildAbis }
         }
         release {
-            isMinifyEnabled = true
+            // Fork addition: R8 shrinking is opt-in (-Pminify=true). The native layer
+            // reaches Java classes through JNI/reflection; without keep-rules verified
+            // on a real TV, shrinking can silently break mirroring at runtime.
+            // Delivered release APKs are signed but intentionally unminified.
+            isMinifyEnabled = (project.findProperty("minify") as? String) == "true"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfigs.findByName("release")?.let { signingConfig = it }
             ndk { abiFilters += buildAbis }

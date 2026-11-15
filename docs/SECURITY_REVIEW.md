@@ -72,9 +72,9 @@
 - 全仓检索 `api_key|secret|token|password|BEGIN ... PRIVATE KEY|Bearer`：命中项为
   `storePassword`/`keyPassword` 的属性读取、`mediaSession.sessionToken`（Android 媒体会话令牌）、
   GPL 许可证正文，均非硬编码凭据。
-- 上游 `.github/workflows/apk.yml` 使用 `secrets.STORE` / `secrets.LOCAL` 做签名，
-  **仅**在 `release/**` 分支或 `v*` 标签触发；本 fork 日常出包用的
-  `build-debug-apk.yml` 不引用任何 secret。
+- 本 fork 的两个出包工作流（`build-debug-apk.yml`、`apk.yml`）**均不引用任何
+  repository secret**。release 签名所需的 keystore 与随机密码在 runner 上临时生成、
+  用完即删，仓库内仍无任何密钥、密码或 token。
 
 ### 2.6 权限与组件暴露面
 
@@ -121,7 +121,7 @@
 | 4 个 native submodule | ✅ 已锁定到上游精确 commit（gitlink `160000`），见 `git ls-tree HEAD`。补丁集针对该 UxPlay 版本编写，不可随意升级 |
 | FFmpeg | ✅ `cmake/BuildFFmpeg.cmake:43` `DOWNLOAD_COMMAND ""`（只用本地 submodule 源码，不联网）；`:55` `--disable-network --disable-all`，仅启用 ALAC/AAC 解码器，**native 侧无网络协议栈** |
 | Gradle 依赖仓库 | ✅ 仅 `google()` / `mavenCentral()`（`settings.gradle.kts`） |
-| CI Actions | ✅ 仅 `actions/checkout@v4`、`setup-java@v4`、`upload-artifact@v4`、`android-actions/setup-android@v3`；用 `@v4` 主版本标签而非 commit SHA，属常见做法但非最强固定（见 4.5） |
+| CI Actions | ✅ 仅 `actions/checkout@v4`、`setup-java@v4`、`upload-artifact@v4`、`softprops/action-gh-release@v2`；用主版本标签而非 commit SHA，属常见做法但非最强固定（见 4.5） |
 | **OpenSSL 源码下载** | ⚠️ **风险，见 4.1** |
 
 ---
@@ -132,7 +132,7 @@
 |---|---|---|
 | 3.1 | 依赖全部锁定到精确 commit（4 个 gitlink），避免"浮动依赖"引入未审代码 | `git ls-tree HEAD app/src/main/cpp/third_party/` |
 | 3.2 | `boot_auto_start` 默认由 `true` 改为 **`false`**：不在每次开机后静默开启监听 | `Prefs.kt:78` 附近 |
-| 3.3 | 出包链路改为自有 `build-debug-apk.yml`，不引用上游签名 secrets，产物含 sha256 校验 | `.github/workflows/build-debug-apk.yml` |
+| 3.3 | 出包链路全部改为自有工作流（`build-debug-apk.yml` + 重写的 `apk.yml`），不引用任何 repository secret，产物含 sha256 校验；release 签名为 runner 内临时密钥 | `.github/workflows/*.yml` |
 | 3.4 | `allowBackup=false`、FileProvider 不导出、`SettingsReceiver` 保留 DUMP 权限保护 | 上游设计，确认保留 |
 | 3.5 | 明确 GPL-3.0 来源、版权与修改清单，便于第三方复核 | `NOTICE.md`、本报告 |
 

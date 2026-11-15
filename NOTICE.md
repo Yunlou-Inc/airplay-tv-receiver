@@ -25,9 +25,13 @@
 2. 应用显示名改为「云楼投屏」；Gradle 工程名改为 `YunlouAirPlayTV`。
 3. 版本信息改为本 fork 自己的版本号（`0.1.0-yunlou`，versionCode=1）。
 4. 新增云端出包工作流 `.github/workflows/build-debug-apk.yml`（GitHub Actions），
-   产出可安装的 debug APK 供零环境验收；保留上游 `apk.yml` 不动。
+   产出可安装的 debug APK 供零环境验收；并重写上游 `.github/workflows/apk.yml`
+   为自包含的 release 出包链路（`v*` 标签自动构建并发布 GitHub Release），
+   不再依赖上游 `secrets.STORE` / `secrets.LOCAL`。
 5. `app/build.gradle.kts` 新增可选 `-Pabis=` 属性，允许 CI 只编译单一 ABI
    （arm64-v8a）以缩短从源码编译 OpenSSL/FFmpeg 的时间；省略该参数时与上游默认一致。
+   另将 release 的代码混淆改为 `-Pminify=true` 显式开启（默认关闭）：native 层通过
+   JNI/反射访问 Java 类，keep 规则未经真机验证前不启用压缩，避免投屏功能在运行时被裁掉。
 6. 新增本 NOTICE、项目 README 与 `docs/CI_APK_DELIVERY.md`（零环境验收手册），
    明确衍生来源与 GPL 合规义务。
 7. 安全加固（详见 `docs/SECURITY_REVIEW.md`）：
@@ -48,9 +52,10 @@
 本仓库 `master` 分支当前**整体为 GPL-3.0 衍生作品**。
 早期自研的 Rust 协议层 + Kotlin 骨架（`airplay-protocol` crate 为 MIT OR Apache-2.0，
 根目录 LICENSE 当时为占位符）不能真投屏，已于 2026-11-15 放弃，
-完整历史归档于 `legacy-prototype` 分支。
+其历史作为 `master` 合并提交 `801a05f0` 的第一个父提交 `5fc97e18` 保留在仓库对象中
+（`legacy-prototype` 归档分支已删除，可用该 SHA 直接访问历史）。
 
-该归档分支仅作历史留存，**不属于当前主线的分发内容**，其许可也不与本项目混合：
+该历史仅作留存，**不属于当前主线的分发内容**，其许可也不与本项目混合：
 本 NOTICE 及 `LICENSE`（GPL-3.0 全文）只约束 `master` 当前树所包含的代码。
 如需分发，请以 `master` 当前树为准提供完整对应源代码。
 

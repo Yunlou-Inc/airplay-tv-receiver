@@ -16,9 +16,10 @@
 ## 项目沿革
 
 本仓库早期有一套自研的 Rust 协议层 + Kotlin 骨架（MIT OR Apache-2.0），仅能发现设备、不能真正投屏。
-该路线已**正式放弃**，其完整历史归档在 `legacy-prototype` 分支；`master` 自 2026-11-15 起
-即为本 GPL-3.0 衍生作品的主线。两者许可不同，**归档分支不属于当前分发内容**，请勿混用。
-云端出包已实测通过（首次完整构建约 4 分钟，产出 arm64-v8a debug APK）。
+该路线已**正式放弃**。`master` 自 2026-11-15 起即为本 GPL-3.0 衍生作品的主线；
+自研历史作为 `master` 合并提交 `801a05f0` 的第一个父提交 `5fc97e18` 保留在仓库对象中，
+**不属于当前分发内容**，两者许可不同，请勿混用。临时分支 `android` / `legacy-prototype` 已删除。
+云端出包已实测通过（首次完整构建约 4 分钟，产出 arm64-v8a 可安装 APK）。
 
 ## 能力
 
@@ -62,6 +63,16 @@ cd airplay-tv-receiver-fork
 
 验收机器**不需要** Android Studio / JDK / SDK / Gradle，也不需要升级 macOS。
 用 GitHub Actions 在云端出包，本机只下载 APK 安装即可。见 [`docs/CI_APK_DELIVERY.md`](docs/CI_APK_DELIVERY.md)。
+
+## Release 包
+
+正式交付包在仓库 **Releases** 页面：`YunlouAirPlayTV-<版本>-release.apk`（已签名，
+可直接 `adb install -r`），并附 `.sha256` 校验文件。推送 `v*` 标签会自动构建并发布；
+也可在 Actions 里手动运行 **Release APK** 工作流单独出包。
+
+> 签名说明：CI 每次生成一次性自签名密钥，**不同批次的 APK 不能覆盖安装**（需先卸载）。
+> 若要长期可升级的正式签名，请自备 keystore 并通过 `local.properties` 或仓库 secrets 复用。
+> 云端只保证能编译、能签名、能安装，**真机投屏尚未验收**。
 
 ## 通过 ADB 配置（无屏幕设备）
 

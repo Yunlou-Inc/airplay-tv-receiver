@@ -3,16 +3,15 @@ name: Build debug APK (acceptance)
 # Purpose: produce a downloadable, INSTALLABLE debug APK for zero-environment acceptance.
 # The acceptance machine needs NO Android Studio / JDK / SDK / Gradle and no macOS upgrade —
 # everything is built in the cloud. This workflow is independent of signing secrets:
-# upstream's apk.yml builds a signed release and needs STORE/LOCAL secrets + a release tag;
-# this one always produces a debuggable APK anyone can install via `adb install -r`.
+# it always produces a debuggable APK anyone can install via `adb install -r`.
+# For a signed release APK use the "Release APK" (apk.yml) workflow instead.
 
 on:
   workflow_dispatch:
   push:
-    # master is the main line. The earlier self-developed MIT/Apache prototype
-    # is archived in the legacy-prototype branch. Keep all three aliases so a
-    # push to any of them still produces an APK.
-    branches: [master, main, android]
+    # master is the only maintained branch. The prototype history was merged
+    # into master; the temporary android / legacy-prototype branches are gone.
+    branches: [master]
 
 permissions:
   contents: read

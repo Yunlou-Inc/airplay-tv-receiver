@@ -1,50 +1,144 @@
-name: Generate APK
+name: Release APK
 
-env:
-  main_project_module: app
+# Self-contained release delivery. No repository secrets are required:
+# upstream's original apk.yml needed STORE/LOCAL secrets that do not exist here.
+# A throwaway signing key is generated on the runner so the APK is installable
+# with `adb install -r` (an unsigned release APK cannot be installed at all).
+#
+# Push a `v*` tag to build AND publish a GitHub Release with the APK, or use
+# "Run workflow" for a build-only verification run (no Release is created).
+#
+# SIGNING NOTE: the key is ephemeral and differs between runs. Two APKs from
+# different runs therefore cannot overwrite each other on a device. For a
+# stable, upgrade-safe signature, provide your own keystore via
+# local.properties (or repository secrets) and reuse it across releases.
 
 on:
-  push:
-    branches:
-      - "release/**"
-    tags:
-      - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      abis:
+        description: "ABI list, comma separated"
+        required: false
+        default: "arm64-v8a"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  release:
+    name: Build signed release APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      # Native code depends on 4 submodules; applyUxplayPatches also needs
+      # UxPlay's git metadata to `git apply` the bundled patches.
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
 
-      - name: Set TAG
-        run: |
-          echo "version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' ${{ env.main_project_module }}/build.gradle.kts)" >> $GITHUB_ENV
-
-      - name: Use JDK
-        uses: actions/setup-java@v6
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          distribution: "zulu"
+          distribution: temurin
           java-version: "21"
-          cache: "gradle"
+          cache: gradle
 
-      - name: Build
+      # Do NOT use android-actions/setup-android@v3: on current ubuntu-latest
+      # images (cmdline-tools 16.0) it looks for the long-removed "tools" package.
+      - name: Set up Android SDK
+        shell: bash
         run: |
-          export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
-          echo ${{ secrets.STORE }} | base64 -d > upload.jks
-          echo ${{ secrets.LOCAL }} | base64 -d > local.properties
-          chmod +x ./gradlew;
-          ./gradlew assembleRelease bundleRelease --stacktrace
-          rm upload.jks local.properties
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          SDKMGR="$(find "$SDK_ROOT/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort | tail -1)"
+          test -n "$SDKMGR" && echo "sdkmanager: $SDKMGR"
+          echo "$(dirname "$SDKMGR")" >> "$GITHUB_PATH"
+          yes | "$SDKMGR" --licenses >/dev/null 2>&1 || true
 
-      - name: Publish (GitHub)
-        uses: softprops/action-gh-release@v3
+      - name: Install SDK packages (best effort)
+        shell: bash
+        run: |
+          sdkmanager --channel=3 "platforms;android-37" "ndk;27.0.12077973" "cmake;3.22.1" \
+            || echo "WARN: sdkmanager did not install every package; AGP will auto-provision."
+
+      - name: Create ephemeral signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          STORE_PASS="ci-$(openssl rand -hex 16)"
+          KEY_PASS="ci-$(openssl rand -hex 16)"
+          keytool -genkeypair -alias yunlou -keyalg RSA -keysize 2048 -validity 10000 \
+            -keystore "$GITHUB_WORKSPACE/ci-release.jks" \
+            -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
+            -dname "CN=Yunlou AirPlay TV, OU=Open Source, O=Yunlou, C=CN"
+          cat > "$GITHUB_WORKSPACE/local.properties" <<EOF
+          storeFile=$GITHUB_WORKSPACE/ci-release.jks
+          storePassword=$STORE_PASS
+          keyAlias=yunlou
+          keyPassword=$KEY_PASS
+          EOF
+
+      - name: Assemble release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          export SOURCE_DATE_EPOCH="$(git log -1 --pretty=%ct)"
+          ABIS="${{ inputs.abis || 'arm64-v8a' }}"
+          # -Pminify=false: R8 shrinking is opt-in, see app/build.gradle.kts.
+          ./gradlew --no-daemon :app:assembleRelease -Pabis="$ABIS" -Pminify=false --stacktrace
+
+      - name: Verify signature and produce deliverable
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -name apksigner -type f | sort | tail -1)"
+          "$APKSIGNER" verify --verbose "$APK"
+          VERSION="$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)"
+          NAME="YunlouAirPlayTV-${VERSION}-release.apk"
+          cp "$APK" "$NAME"
+          shasum -a 256 "$NAME" | tee "$NAME.sha256"
+          echo "APK size: $(du -h "$NAME" | cut -f1)"
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/ci-release.jks" "$GITHUB_WORKSPACE/local.properties"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: v${{ env.version }}
-          tag_name: v${{ env.version }}
+          name: yunlou-airplaytv-release-run-${{ github.run_number }}
+          path: |
+            YunlouAirPlayTV-*-release.apk
+            YunlouAirPlayTV-*-release.apk.sha256
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
           files: |
-            ${{ env.main_project_module }}/build/outputs/apk/release/app-release.apk
-            ${{ env.main_project_module }}/build/outputs/bundle/release/app-release.aab
+            YunlouAirPlayTV-*-release.apk
+            YunlouAirPlayTV-*-release.apk.sha256
+          body: |
+            ### 云楼投屏 release 包
+
+            - `YunlouAirPlayTV-<version>-release.apk`：arm64-v8a，**已签名**，可直接 `adb install -r`
+            - `.sha256`：安装包校验文件
+            - 构建：JDK 21 / Android SDK 37 / NDK 27.0.12077973 / Gradle 9.8.1，4 个 native 子模块源码编译
+
+            **签名说明**：CI 在 runner 上生成一次性自签名密钥，用完即删，仓库内不含任何密钥。
+            不同批次构建的 APK 签名不同，**不能覆盖安装**（需先卸载）。需要长期可升级的正式签名，
+            请自备 keystore 并通过 `local.properties` 或仓库 secrets 复用。
+
+            **许可**：本项目为 GPL-3.0 衍生作品。对外分发 APK 时须随附完整对应源代码、
+            `LICENSE` 与 `NOTICE.md`，详见仓库根目录。
+
+            本包仅完成云端构建与签名校验，**尚未做真机投屏验收**。
