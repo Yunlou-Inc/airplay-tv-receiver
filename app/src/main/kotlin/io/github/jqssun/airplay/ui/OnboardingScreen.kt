@@ -86,7 +86,7 @@ fun OnboardingScreen(viewModel: MainViewModel, onDone: () -> Unit) {
                 modifier = Modifier.widthIn(max = 680.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // brand mark carries its own navy tile, so it stays legible on light and dark
+                // brand mark carries its own vermilion seal tile, so it stays legible on light and dark
                 Icon(
                     painter = painterResource(R.drawable.ic_brand_mark),
                     contentDescription = null,

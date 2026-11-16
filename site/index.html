@@ -18,8 +18,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
-    --brand: #2F6BFF;
-    --brand-dark: #1B4BD8;
+    --brand: #B8382A;
+    --brand-dark: #96271B;
     --ink: #14171F;
     --muted: #5A6273;
     --line: #E3E8F4;
@@ -47,14 +47,12 @@
     text-align: center;
   }
   .logo {
+    display: block;
     width: 96px; height: 96px;
     margin: 0 auto 22px;
     border-radius: 24px;
-    background: #0B1B3A;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 18px 40px rgba(4,12,34,.42), inset 0 0 0 1px rgba(255,255,255,.14);
+    box-shadow: 0 18px 40px rgba(4,12,34,.42), inset 0 0 0 1px rgba(255,255,255,.10);
   }
-  .logo svg { width: 62px; height: 44px; display: block; }
   h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: .5px; }
   .tagline { font-size: 16px; color: rgba(255,255,255,.82); margin: 0 auto; max-width: 520px; }
   .actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
@@ -140,15 +138,7 @@
 
 <header>
   <div class="wrap">
-    <div class="logo" aria-hidden="true">
-      <svg viewBox="118 152 276 196">
-        <circle cx="254" cy="246" r="94" fill="#fff"/>
-        <circle cx="172" cy="284" r="52" fill="#fff"/>
-        <circle cx="340" cy="284" r="52" fill="#fff"/>
-        <rect x="118" y="258" width="276" height="90" rx="38" fill="#fff"/>
-        <path d="M232 208 L232 300 L310 254 Z" fill="#0B1B3A"/>
-      </svg>
-    </div>
+    <img class="logo" src="icon-192.png" width="96" height="96" alt="云楼投屏">
     <h1>云楼投屏</h1>
     <p class="tagline">装到电视上，iPhone / iPad 用系统自带的「屏幕镜像」就能把画面投上去。开源、无广告、不要账号。</p>
 

@@ -19,7 +19,7 @@
 该路线已**正式放弃**。`master` 自 2026-11-15 起即为本 GPL-3.0 衍生作品的主线；
 自研历史作为 `master` 合并提交 `801a05f0` 的第一个父提交 `5fc97e18` 保留在仓库对象中，
 **不属于当前分发内容**，两者许可不同，请勿混用。临时分支 `android` / `legacy-prototype` 已删除。
-云端出包已实测通过（首次完整构建约 4～5 分钟，产出 armeabi-v7a 可安装 APK）。
+云端出包已实测通过（单次构建约 4～6 分钟；现按 CPU 架构并行出 4 个包）。
 
 ## 能力
 
@@ -73,11 +73,20 @@ cd airplay-tv-receiver-fork
 验收机器**不需要** Android Studio / JDK / SDK / Gradle，也不需要升级 macOS。
 用 GitHub Actions 在云端出包，本机只下载 APK 安装即可。见 [`docs/CI_APK_DELIVERY.md`](docs/CI_APK_DELIVERY.md)。
 
-## Release 包
+## Release 包（多架构）
 
-正式交付包在仓库 **Releases** 页面：`YunlouAirPlayTV-<版本>-release.apk`（已签名，
-可直接 `adb install -r`），并附 `.sha256` 校验文件。推送 `v*` 标签会自动构建并发布；
-也可在 Actions 里手动运行 **Release APK** 工作流单独出包。
+正式交付包在仓库 **Releases** 页面：一次构建出 **4 个包**，装其中一个即可，配置相同。
+
+| 文件 | 适用设备 | 体积（参考） |
+| --- | --- | --- |
+| `YunlouAirPlayTV-<版本>-arm64-v8a.apk` | 2019 年之后的电视 / 盒子（**推荐**） | ~26 MB |
+| `YunlouAirPlayTV-<版本>-armeabi-v7a.apk` | 老款 32 位电视（Android 6/7/8 时代） | ~22 MB |
+| `YunlouAirPlayTV-<版本>-x86_64.apk` | 安卓模拟器 / Intel 芯片盒子 | ~26 MB |
+| `YunlouAirPlayTV-<版本>-universal.apk` | 不确定架构时装这个，三种 ABI 通吃 | ~48 MB |
+
+每个包都附带 `.sha256` 校验文件，均已签名，可直接 `adb install -r`。推送 `v*` 标签会自动
+并行构建四个包并合成一个 Release；也可在 Actions 里手动运行 **Release APK** 工作流单独出包
+（只产出 artifact，不发布）。
 
 > 签名说明：`SIGNING_*` 仓库 secret 已配置，正式包使用**固定发布密钥**（证书 SHA-256
 > `C7:25:9B:E7:…:83:CD`），可直接覆盖升级；历史 `v0.1.0`~`v0.3.0` 由一次性密钥签名，
@@ -93,8 +102,20 @@ cd airplay-tv-receiver-fork
 安装说明、SHA256 校验方法、常见问题、许可声明。品牌资源同目录：
 `icon-512.png` / `icon-192.png` / `apple-touch-icon.png` / `og.png`（社交分享卡）。
 
-App 内的品牌标识与页面同源：`drawable/ic_launcher_foreground.xml`（启动器图标）、
-`drawable/ic_brand_mark.xml`（引导页）、`drawable/banner.xml`（TV 横幅），均为「云 + 负形播放键」。
+App 内的品牌标识与页面同源：`drawable/ic_launcher_foreground.xml`（启动器图标前景）、
+`drawable/ic_brand_mark.xml`（引导页）、`drawable/banner.xml`（TV 横幅），图案统一为
+**朱红印章 + 白色「云」字**。
+
+「云」是纯路径的几何字（两横 + 撇折 + 点，比例取自黑体实测），**不依赖任何字库文件**，
+因此可以随 GPL 源码自由分发。
+
+图标同时提供两套，覆盖全部系统版本：
+
+- `mipmap-anydpi-v26/ic_launcher.xml` —— 自适应图标（Android 8.0+），含 Android 13 主题化图标用的 `monochrome` 层
+- `mipmap-{m,h,xh,xxh,xxxh}dpi/ic_launcher.png` —— 位图图标（Android 6/7 等旧系统没有自适应图标）
+
+> 换图标后电视桌面仍是旧图标的，重启电视或在「设置 → 应用」里清一次桌面（Launcher）的数据即可，
+> 这是桌面缓存，不是安装包的问题。
 
 ## 通过 ADB 配置（无屏幕设备）
 

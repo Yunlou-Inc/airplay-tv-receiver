@@ -19,7 +19,7 @@
 验收方机器上**只需要**：
 
 - 一个浏览器（打开 Releases / Actions 下载 APK）
-- 一台 Android 7.0+ 电视 / 盒子（32 位 `armeabi-v7a` 通用包，32/64 位设备都能装）
+- 一台 Android 6.0+ 电视 / 盒子（按 CPU 架构选对应包，见下面的表格）
 - 一个 iPhone / iPad / Mac，与目标设备同一局域网
 - 安装方式二选一：`adb`（数据线或网络 ADB），或真机上"从文件安装"
 
@@ -30,24 +30,23 @@
 | 工作流 | 产物 | 用途 |
 |---|---|---|
 | **Build debug APK (acceptance)** | debug 签名 APK | 日常验收；每次 push 到 `master` 自动出包 |
-| **Release APK** | 已签名 release APK + `.sha256` | 正式交付；`v*` 标签自动发布到 GitHub Releases |
+| **Release APK** | 4 个架构包（arm64-v8a / armeabi-v7a / x86_64 / universal）+ `.sha256` | 正式交付；`v*` 标签自动发布到 GitHub Releases |
 
 可选：配置 4 个 `SIGNING_*` 仓库 secret 后，release 改用固定发布密钥签名，不同版本可以
 覆盖升级；未配置时回退到 runner 上临时生成的密钥。见 [`SIGNING.md`](SIGNING.md)。
 
 手动运行：打开本仓库 **Actions** → 左侧选工作流 → 右侧 **Run workflow** → 选分支 `master` → **Run workflow**。
 
-发布正式包：推送 `v*` 标签（如 `v0.3.0-yunlou`），**Release APK** 会自动构建并把 APK
-与校验文件发布到 GitHub Releases。
+发布正式包：推送 `v*` 标签（如 `v0.5.0-yunlou`），**Release APK** 会并行构建四个包，
+再合成一个 GitHub Release。
 
-> 构建需从源码编译 OpenSSL 与 FFmpeg，默认只编译 `armeabi-v7a` 一个 ABI：
-> 32 位电视原生匹配，64 位电视走系统兼容层也能装，体积最小、下载最不容易断。
-> **已实测：云端首次完整构建约 4～5 分钟**。需要 64 位包时，手动运行
-> **Release APK** 工作流，把 `abis` 填成 `arm64-v8a`。
+> 构建需从源码编译 OpenSSL 与 FFmpeg。四个包在矩阵作业里**并行**编译，单包约 4～6 分钟；
+> `universal` 一个包要编三种 ABI，耗时最长（约 10 分钟）。
 
 ## 2. 下载与校验
 
-正式包：仓库 **Releases** 页面下载 `YunlouAirPlayTV-<版本>-release.apk` 及 `.sha256`。
+正式包：仓库 **Releases** 页面按架构下载 `YunlouAirPlayTV-<版本>-<架构>.apk` 及 `.sha256`
+（只需装一个，四个包装的是同一个 App）。
 日常包：点进 Actions 里刚跑完的 run，页面底部 **Artifacts** 下载 zip 并解压得到
 `app-debug.apk` / `app-debug.apk.sha256`。
 
@@ -55,9 +54,9 @@
 
 ```bash
 # macOS
-shasum -a 256 YunlouAirPlayTV-0.3.0-yunlou-release.apk
+shasum -a 256 YunlouAirPlayTV-0.5.0-yunlou-arm64-v8a.apk
 # Linux
-sha256sum YunlouAirPlayTV-0.3.0-yunlou-release.apk
+sha256sum YunlouAirPlayTV-0.5.0-yunlou-arm64-v8a.apk
 ```
 
 ## 3. 安装到电视 / 盒子
@@ -98,18 +97,24 @@ am start -n cn.net.yunlou.airplaytv/.MainActivity
 am broadcast -n cn.net.yunlou.airplaytv/.SettingsReceiver -a io.github.jqssun.airplay.LIST_SETTINGS
 ```
 
-## 6. 调整 ABI（需要 64 位或全 ABI 包时）
+## 6. 架构与包的选择
 
-`Release APK` 工作流默认 `armeabi-v7a`。手动运行时在 `abis` 输入框填其他值即可：
+`Release APK` 工作流固定产出四个包（矩阵作业，`matrix.abis` 决定每个包编哪些 ABI）：
 
-| 填法 | 适用 |
-|---|---|
-| `armeabi-v7a` | 默认，32 位电视直装；64 位电视可走兼容层安装 |
-| `arm64-v8a` | 纯 64 位 ROM 的电视 / 盒子 |
-| `armeabi-v7a,arm64-v8a` | 双架构合一，约 30 MB |
-| `arm64-v8a,armeabi-v7a,x86_64` | 全 ABI 兜底，约 41 MB，下载容易中断 |
+| 包 | ABI | 适用 |
+|---|---|---|
+| `-arm64-v8a.apk` | `arm64-v8a` | 2019 年后的电视 / 盒子，**默认发这个** |
+| `-armeabi-v7a.apk` | `armeabi-v7a` | 老款 32 位电视（Android 6/7/8 时代芯片） |
+| `-x86_64.apk` | `x86_64` | 安卓模拟器 / Intel 芯片盒子 |
+| `-universal.apk` | 三者全含 | 不确定架构时兜底，体积最大 |
 
-`Build debug APK` 工作流同理，改 Assemble 那一步的 `-Pabis=` 参数。
+本地单独出某个包：
+
+```bash
+./gradlew :app:assembleRelease -Pabis=arm64-v8a -Pminify=false
+./gradlew :app:assembleRelease -Pabis=arm64-v8a,armeabi-v7a,x86_64 -Pminify=false   # 通用包
+```
+
 ABI 越多，云端编译越慢、包越大。
 
 ## 7. 已知限制与注意

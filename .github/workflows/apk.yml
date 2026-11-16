@@ -1,6 +1,7 @@
 name: Release APK
 
-# Self-contained release delivery.
+# Self-contained release delivery: builds one signed APK per CPU architecture
+# plus a universal package, then publishes them all in a single GitHub Release.
 #
 # Signing has two modes:
 #   stable    -> repository secrets hold our own release keystore, so APKs from
@@ -11,16 +12,11 @@ name: Release APK
 #                generated on the runner. The APK installs fine, but a later
 #                build cannot overwrite it without uninstalling first.
 #
-# Push a `v*` tag to build AND publish a GitHub Release with the APK, or use
+# Push a `v*` tag to build AND publish a GitHub Release with every APK, or use
 # "Run workflow" for a build-only verification run (no Release is created).
 
 on:
   workflow_dispatch:
-    inputs:
-      abis:
-        description: "ABI list, comma separated"
-        required: false
-        default: "armeabi-v7a"
   push:
     tags:
       - "v*"
@@ -29,9 +25,25 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build signed release APK
+  build:
+    name: Build ${{ matrix.label }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 现代电视 / 盒子（绝大多数设备）—— 首选
+          - label: arm64-v8a
+            abis: arm64-v8a
+          # 老款 32 位电视（Android 6/7/8 时代的芯片）
+          - label: armeabi-v7a
+            abis: armeabi-v7a
+          # 模拟器 / Intel 芯片盒子
+          - label: x86_64
+            abis: x86_64
+          # 不确定架构时装这个（体积最大，通吃）
+          - label: universal
+            abis: arm64-v8a,armeabi-v7a,x86_64
     steps:
       # Native code depends on 4 submodules; applyUxplayPatches also needs
       # UxPlay's git metadata to `git apply` the bundled patches.
@@ -104,16 +116,19 @@ jobs:
 
       - name: Assemble release APK
         shell: bash
+        env:
+          ABIS: ${{ matrix.abis }}
         run: |
           set -euo pipefail
           chmod +x ./gradlew
           export SOURCE_DATE_EPOCH="$(git log -1 --pretty=%ct)"
-          ABIS="${{ inputs.abis || 'armeabi-v7a' }}"
           # -Pminify=false: R8 shrinking is opt-in, see app/build.gradle.kts.
           ./gradlew --no-daemon :app:assembleRelease -Pabis="$ABIS" -Pminify=false --stacktrace
 
       - name: Verify signature and produce deliverable
         shell: bash
+        env:
+          LABEL: ${{ matrix.label }}
         run: |
           set -euo pipefail
           APK=app/build/outputs/apk/release/app-release.apk
@@ -124,48 +139,22 @@ jobs:
           # apksigner prints "V2 Signer: certificate SHA-256 digest: <hex>" (the
           # "Signer #1 ..." form only appears for v1-only APKs), so match loosely.
           CERT_SHA256="$(sed -n 's/^.*certificate SHA-256 digest: //p' apksigner.txt | head -1)"
-          echo "CERT_SHA256=$CERT_SHA256" >> "$GITHUB_ENV"
           VERSION="$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)"
-          NAME="YunlouAirPlayTV-${VERSION}-release.apk"
+          NAME="YunlouAirPlayTV-${VERSION}-${LABEL}.apk"
           cp "$APK" "$NAME"
           shasum -a 256 "$NAME" | tee "$NAME.sha256"
-          echo "APK size: $(du -h "$NAME" | cut -f1)"
-
-      - name: Write release notes
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)"
-          if [ "$SIGNING_MODE" = "stable" ]; then
-            SIGN_NOTE="本版本使用项目固定的发布签名，可直接覆盖安装升级。"
-          else
-            SIGN_NOTE="本次构建使用 runner 上一次性生成的签名（仓库未配置签名 secrets），**与上一版签名不同，安装前必须先卸载旧版本**。"
-          fi
-          cat > release-notes.md <<EOF
-          ### 云楼投屏 ${VERSION}
-
-          - \`YunlouAirPlayTV-${VERSION}-release.apk\`：armeabi-v7a（32 位通用），**已签名**，可直接 \`adb install -r\`
-          - \`.sha256\`：安装包校验文件
-          - 构建：JDK 21 / Android SDK 37 / NDK 27.0.12077973 / Gradle 9.8.1，4 个 native 子模块源码编译
-
-          **签名**
-          ${SIGN_NOTE}
-
-          签名证书 SHA-256 指纹：
-          \`${CERT_SHA256:-unknown}\`
-
-          在 App 内「设置 → 关于 → 签名指纹」可以看到同一份指纹的前 8 字节，用来确认安装包来源。
-
-          **安装**
-          1. 设置 → 安全与隐私 → 未知来源应用 → 允许
-          2. U 盘格式化 FAT32，APK 放根目录，文件名保持英文短名；剩余空间留 600 MB 以上
-          3. 若提示「应用未安装 / 更新不兼容」，先在「设置 → 应用」里卸载旧版本
-
-          **许可**：本项目为 GPL-3.0 衍生作品。对外分发 APK 时须随附完整对应源代码、
-          \`LICENSE\` 与 \`NOTICE.md\`，详见仓库根目录。
-
-          本包完成云端构建与签名校验，真机投屏验收以 Release 说明为准。
-          EOF
+          # 记录本包的元信息，publish 作业汇总进 Release 说明
+          {
+            printf 'LABEL=%s\n' "$LABEL"
+            printf 'VERSION=%s\n' "$VERSION"
+            printf 'APK_NAME=%s\n' "$NAME"
+            printf 'APK_BYTES=%s\n' "$(wc -c < "$NAME" | tr -d ' ')"
+            printf 'APK_SHA256=%s\n' "$(cut -d' ' -f1 "$NAME.sha256")"
+            printf 'CERT_SHA256=%s\n' "${CERT_SHA256:-unknown}"
+            printf 'SIGNING_MODE=%s\n' "${SIGNING_MODE:-unknown}"
+            printf 'NATIVE_ABIS=%s\n' "$(unzip -l "$NAME" | awk '{print $4}' | grep -E '^lib/[^/]+/lib' | cut -d/ -f2 | sort -u | tr '\n' ' ')"
+          } > "meta-${LABEL}.txt"
+          cat "meta-${LABEL}.txt"
 
       - name: Remove signing material
         if: always()
@@ -174,18 +163,96 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: yunlou-airplaytv-release-run-${{ github.run_number }}
+          name: apk-${{ matrix.label }}
           path: |
-            YunlouAirPlayTV-*-release.apk
-            YunlouAirPlayTV-*-release.apk.sha256
+            YunlouAirPlayTV-*.apk
+            YunlouAirPlayTV-*.apk.sha256
+            meta-${{ matrix.label }}.txt
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: app/build.gradle.kts
+          sparse-checkout-cone-mode: false
+
+      - name: Download all APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: apk-*
+          merge-multiple: true
+          path: dist
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          VERSION="$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' "$GITHUB_WORKSPACE/app/build.gradle.kts" | head -1)"
+          MODE="$(sed -n 's/^SIGNING_MODE=//p' meta-arm64-v8a.txt 2>/dev/null || echo unknown)"
+          CERT="$(sed -n 's/^CERT_SHA256=//p' meta-arm64-v8a.txt 2>/dev/null || echo unknown)"
+          if [ "$MODE" = "stable" ]; then
+            SIGN_NOTE="本版本使用项目固定的发布签名，不同版本之间可直接覆盖安装升级。"
+          else
+            SIGN_NOTE="本次构建使用 runner 上一次性生成的签名（仓库未配置签名 secrets），**与上一版签名不同，安装前必须先卸载旧版本**。"
+          fi
+          {
+            echo "### 云楼投屏 ${VERSION}"
+            echo
+            echo "**按电视的 CPU 架构选一个装**（四个包装的是同一个 App，只需装一个）："
+            echo
+            echo "| 文件 | 适用设备 | 体积 |"
+            echo "| --- | --- | --- |"
+            for f in meta-*.txt; do
+              lbl="$(sed -n 's/^LABEL=//p' "$f")"
+              nm="$(sed -n 's/^APK_NAME=//p' "$f")"
+              by="$(sed -n 's/^APK_BYTES=//p' "$f")"
+              mb=$(( by / 1024 / 1024 ))
+              case "$lbl" in
+                arm64-v8a)   use="2019 年之后的电视 / 电视盒子（推荐）" ;;
+                armeabi-v7a) use="老款 32 位电视（Android 6/7/8 时代）" ;;
+                x86_64)      use="安卓模拟器 / Intel 芯片盒子" ;;
+                universal)   use="不确定架构时装这个，通吃（体积最大）" ;;
+                *)           use="" ;;
+              esac
+              echo "| \`$nm\` | $use | ${mb} MB |"
+            done
+            echo
+            echo "每个包旁边有对应的 \`.sha256\` 校验文件。"
+            echo
+            echo "**签名**"
+            echo
+            echo "${SIGN_NOTE}"
+            echo
+            echo "签名证书 SHA-256 指纹：\`${CERT}\`"
+            echo
+            echo "在 App 内「设置 → 关于 → 签名指纹」能看到同一份指纹的前 8 字节，用来确认安装包来源。"
+            echo
+            echo "**安装**"
+            echo
+            echo "1. 设置 → 安全与隐私 → 未知来源应用 → 允许"
+            echo "2. U 盘格式化 FAT32，APK 放根目录，文件名保持英文短名；剩余空间留 600 MB 以上"
+            echo "3. 若提示「应用未安装 / 更新不兼容」，先在「设置 → 应用」里卸载旧版本"
+            echo "4. 装完如果桌面图标没变，重启电视或清一次桌面（Launcher）数据 —— 部分电视会缓存旧图标"
+            echo
+            echo "**兼容性**：Android 6.0+（API 23），含 Android TV / Google TV；同时提供自适应图标（API 26+）与位图图标（旧系统）。"
+            echo
+            echo "**许可**：本项目为 GPL-3.0 衍生作品。对外分发 APK 时须随附完整对应源代码、\`LICENSE\` 与 \`NOTICE.md\`，详见仓库根目录。"
+            echo
+            echo "本包完成云端构建与签名校验，真机投屏验收以 README 说明为准。"
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Publish
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            YunlouAirPlayTV-*-release.apk
-            YunlouAirPlayTV-*-release.apk.sha256
-          body_path: release-notes.md
+            dist/YunlouAirPlayTV-*.apk
+            dist/YunlouAirPlayTV-*.apk.sha256
+          body_path: dist/release-notes.md
