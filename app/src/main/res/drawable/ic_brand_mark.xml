@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  应用内品牌标识（自带圆角深蓝底，不依赖外部背景色，明暗主题下都成立）。
+  与启动器图标视觉一致：白色云 + 负形播放键。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#0B1B3A"
+        android:pathData="M24,0 h60 a24,24 0 0 1 24,24 v60 a24,24 0 0 1 -24,24 h-60 a24,24 0 0 1 -24,-24 v-60 a24,24 0 0 1 24,-24 Z" />
+
+    <group
+        android:translateX="-2.576"
+        android:translateY="-1.25"
+        android:scaleX="0.221"
+        android:scaleY="0.221">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M160,246 a94,94 0 1 0 188,0 a94,94 0 1 0 -188,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M120,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M288,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M156,258 h200 a38,38 0 0 1 38,38 v14 a38,38 0 0 1 -38,38 h-200 a38,38 0 0 1 -38,-38 v-14 a38,38 0 0 1 38,-38 Z" />
+        <path
+            android:fillColor="#0B1B3A"
+            android:pathData="M232,208 L232,300 L310,254 Z" />
+    </group>
+</vector>

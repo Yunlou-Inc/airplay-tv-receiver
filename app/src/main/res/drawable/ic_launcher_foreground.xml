@@ -1,32 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  云楼投屏品牌图形：云 + 播放键（负形）。
+  背景为纯色 #0B1B3A，播放三角用同色填充，因此在启动器里呈现为“挖空”效果，
+  同时在浅色背景下也能作为两色标识正常显示。
+  画布 512 逻辑坐标，通过 group 等比映射到 108dp 自适应图标安全区。
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <group
-        android:pivotX="480"
-        android:pivotY="480"
-        android:scaleX="0.5"
-        android:scaleY="0.5">
-        <!-- shadow layer -->
-        <group
-            android:translateX="16"
-            android:translateY="16">
-            <path
-                android:fillColor="#3D5A9E"
-                android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
-        </group>
-        <!-- middle layer -->
-        <group
-            android:translateX="12"
-            android:translateY="12">
-            <path
-                android:fillColor="#7D93CE"
-                android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
-        </group>
-        <!-- main layer -->
+        android:translateX="-2.576"
+        android:translateY="-1.25"
+        android:scaleX="0.221"
+        android:scaleY="0.221">
+
+        <!-- 云体：中间大拱 + 左右两个小拱 + 圆角底座（同一 fillColor，叠加即并集） -->
         <path
             android:fillColor="#FFFFFF"
-            android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
+            android:pathData="M160,246 a94,94 0 1 0 188,0 a94,94 0 1 0 -188,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M120,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M288,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M156,258 h200 a38,38 0 0 1 38,38 v14 a38,38 0 0 1 -38,38 h-200 a38,38 0 0 1 -38,-38 v-14 a38,38 0 0 1 38,-38 Z" />
+
+        <!-- 播放键（与背景同色，形成负形） -->
+        <path
+            android:fillColor="#0B1B3A"
+            android:pathData="M232,208 L232,300 L310,254 Z" />
     </group>
 </vector>

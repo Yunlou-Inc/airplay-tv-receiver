@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CastConnected
@@ -87,21 +86,13 @@ fun OnboardingScreen(viewModel: MainViewModel, onDone: () -> Unit) {
                 modifier = Modifier.widthIn(max = 680.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(96.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // the launcher foreground is a multi-colour vector; keep its own tint
-                    Icon(
-                        painter = painterResource(R.drawable.ic_launcher_foreground),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(72.dp)
-                    )
-                }
+                // brand mark carries its own navy tile, so it stays legible on light and dark
+                Icon(
+                    painter = painterResource(R.drawable.ic_brand_mark),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(96.dp)
+                )
 
                 Spacer(Modifier.height(18.dp))
                 Text(

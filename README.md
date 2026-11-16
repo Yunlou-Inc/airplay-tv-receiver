@@ -46,7 +46,7 @@
 
 ## 兼容性
 
-- Android 7.0+（含 Android TV / Google TV）
+- Android 6.0+（`minSdk 23`；含 Android TV / Google TV，上游主要在 7.0+ 上验证）
 - 与发送端处于同一局域网的 iOS / iPadOS / macOS 设备
 
 ## 构建（需要 Android SDK/NDK）
@@ -79,15 +79,22 @@ cd airplay-tv-receiver-fork
 可直接 `adb install -r`），并附 `.sha256` 校验文件。推送 `v*` 标签会自动构建并发布；
 也可在 Actions 里手动运行 **Release APK** 工作流单独出包。
 
-> 签名说明：配置 `SIGNING_*` 仓库 secret 后使用固定发布密钥，可直接覆盖升级；
-> 未配置时回退一次性密钥，**不同批次的 APK 不能覆盖安装**（需先卸载）。
-> 见 [`docs/SIGNING.md`](docs/SIGNING.md)。
+> 签名说明：`SIGNING_*` 仓库 secret 已配置，正式包使用**固定发布密钥**（证书 SHA-256
+> `C7:25:9B:E7:…:83:CD`），可直接覆盖升级；历史 `v0.1.0`~`v0.3.0` 由一次性密钥签名，
+> 升级到第一个固定签名包时需卸载一次。见 [`docs/SIGNING.md`](docs/SIGNING.md)。
 > 云端只保证能编译、能签名、能安装，**真机投屏尚未验收**。
 
 ## 下载页
 
+**在线地址：<https://yunlou-inc.github.io/airplay-tv-receiver/>**（GitHub Pages，由
+`.github/workflows/pages.yml` 在 `site/` 变更时自动发布）
+
 `site/index.html` 是给普通用户看的落地页（单文件、无外部依赖）：下载按钮、三步图示、
-安装说明、SHA256 校验方法、常见问题、许可声明。可直接用任意静态托管发布。
+安装说明、SHA256 校验方法、常见问题、许可声明。品牌资源同目录：
+`icon-512.png` / `icon-192.png` / `apple-touch-icon.png` / `og.png`（社交分享卡）。
+
+App 内的品牌标识与页面同源：`drawable/ic_launcher_foreground.xml`（启动器图标）、
+`drawable/ic_brand_mark.xml`（引导页）、`drawable/banner.xml`（TV 横幅），均为「云 + 负形播放键」。
 
 ## 通过 ADB 配置（无屏幕设备）
 

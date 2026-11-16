@@ -16,10 +16,15 @@ Android 不允许用不同签名覆盖安装同一个包名的应用。签名一
 构建日志会打印 `SIGNING_MODE`，`apksigner verify --print-certs` 输出证书 SHA-256，
 Release 说明里也会写入同一份指纹，便于核对。
 
+> **当前状态（2026-11-16）**：仓库 secrets 已配置 4 项，下一次打 `v*` 标签构建即为
+> `stable` 模式，证书 SHA-256 应为 `C7:25:9B:E7:…:83:CD`。
+> 由于 `v0.1.0` ~ `v0.3.0` 都是一次性密钥签的，升级到第一个 stable 包时**仍需卸载一次**，
+> 之后才能一路覆盖升级。
+
 ## 启用 stable 模式
 
 一次性配置，共 4 个 repository secret（**Settings → Secrets and variables → Actions →
-New repository secret**）：
+New repository secret**）；已配置后可跳过本节。
 
 | 名称 | 内容 |
 |---|---|

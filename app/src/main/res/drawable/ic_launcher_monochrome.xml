@@ -1,15 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主题图标（Android 13+ monochrome）：只保留云的剪影，系统会自动着色。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <group
-        android:pivotX="480"
-        android:pivotY="480"
-        android:scaleX="0.5"
-        android:scaleY="0.5">
+        android:translateX="-2.576"
+        android:translateY="-1.25"
+        android:scaleX="0.221"
+        android:scaleY="0.221">
         <path
             android:fillColor="#000000"
-            android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
+            android:pathData="M160,246 a94,94 0 1 0 188,0 a94,94 0 1 0 -188,0 Z" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M120,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M288,284 a52,52 0 1 0 104,0 a52,52 0 1 0 -104,0 Z" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M156,258 h200 a38,38 0 0 1 38,38 v14 a38,38 0 0 1 -38,38 h-200 a38,38 0 0 1 -38,-38 v-14 a38,38 0 0 1 38,-38 Z" />
     </group>
 </vector>

@@ -5,7 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>云楼投屏 — 把电视变成 iPhone 的无线大屏</title>
 <meta name="description" content="云楼投屏是一个开源 Android TV 投屏接收端，装到电视上，iPhone / iPad 就能用系统自带的屏幕镜像和 AirPlay 把画面投上去。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F6BFF'/%3E%3Cpath d='M9 22h14M9 17a9 9 0 0 1 9 9M9 12a14 14 0 0 1 14 14' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="canonical" href="https://yunlou-inc.github.io/airplay-tv-receiver/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="云楼投屏 — 把电视变成 iPhone 的无线大屏">
+<meta property="og:description" content="装到电视上，iPhone / iPad 用系统自带的「屏幕镜像」就能把画面投上去。开源、无广告、不要账号。">
+<meta property="og:image" content="https://yunlou-inc.github.io/airplay-tv-receiver/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
     --brand: #2F6BFF;
@@ -37,14 +47,14 @@
     text-align: center;
   }
   .logo {
-    width: 88px; height: 88px;
-    margin: 0 auto 20px;
-    border-radius: 22px;
-    background: rgba(255,255,255,.14);
+    width: 96px; height: 96px;
+    margin: 0 auto 22px;
+    border-radius: 24px;
+    background: #0B1B3A;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 12px 32px rgba(8,18,48,.35);
+    box-shadow: 0 18px 40px rgba(4,12,34,.42), inset 0 0 0 1px rgba(255,255,255,.14);
   }
-  .logo svg { width: 52px; height: 52px; }
+  .logo svg { width: 62px; height: 44px; display: block; }
   h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: .5px; }
   .tagline { font-size: 16px; color: rgba(255,255,255,.82); margin: 0 auto; max-width: 520px; }
   .actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
@@ -131,10 +141,12 @@
 <header>
   <div class="wrap">
     <div class="logo" aria-hidden="true">
-      <svg viewBox="0 0 32 32" fill="none">
-        <path d="M7 23h18" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M7 17.5a9.5 9.5 0 0 1 9.5 9.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M7 11a16 16 0 0 1 16 16" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".75"/>
+      <svg viewBox="118 152 276 196">
+        <circle cx="254" cy="246" r="94" fill="#fff"/>
+        <circle cx="172" cy="284" r="52" fill="#fff"/>
+        <circle cx="340" cy="284" r="52" fill="#fff"/>
+        <rect x="118" y="258" width="276" height="90" rx="38" fill="#fff"/>
+        <path d="M232 208 L232 300 L310 254 Z" fill="#0B1B3A"/>
       </svg>
     </div>
     <h1>云楼投屏</h1>
